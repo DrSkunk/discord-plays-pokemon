@@ -19,7 +19,7 @@ try {
 } catch (error) {
   throw new Error('The democracy timeout is not a number');
 }
-const CurrentGamemode = loadedGamemode as Gamemode;
+const CurrentGamemode: Gamemode = loadedGamemode;
 
 export {
   DiscordToken,

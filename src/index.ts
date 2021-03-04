@@ -20,7 +20,7 @@ if (
   !DiscordChannelId ||
   !Romfile ||
   !CurrentGamemode ||
-  DemocracyTimeout
+  !DemocracyTimeout
 ) {
   console.error('Not all values are set in your .env file');
   process.exit(1);
