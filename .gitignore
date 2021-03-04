@@ -1,0 +1,11 @@
+.DS_Store
+
+.idea/
+.tscache/
+tmp/
+espowered/
+
+node_modules/
+dist/
+roms/*.gb
+.env
