@@ -76,7 +76,6 @@ export class GameboyClient {
     png.data = Buffer.from(rows.flat());
 
     const buffer = PNG.sync.write(png);
-    fs.writeFileSync('./test.png', buffer);
     return buffer;
   }
 }
