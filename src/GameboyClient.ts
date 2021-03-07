@@ -2,7 +2,7 @@ import Gameboy from 'serverboy';
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
 import { Reaction } from './Reaction';
-import fs from 'fs';
+import { Scale } from './Config';
 
 // TODO send audio to voice channel
 export class GameboyClient {
@@ -51,29 +51,33 @@ export class GameboyClient {
   getFrame() {
     const screen = this.gameboy.getScreen();
 
-    const scale = 3;
     const width = 160;
     const height = 144;
-    const png = new PNG({ width: width * scale, height: height * scale });
+    const png = new PNG({ width: width * Scale, height: height * Scale });
 
-    // TODO fix this inefficient code
+    if (Scale === 1) {
+      for (let i = 0; i < screen.length; i++) {
+        png.data[i] = screen[i];
+      }
+    } else {
+      // TODO fix this inefficient code
+      let rows: number[][] = [];
+      for (let i = 0; i < height; i++) {
+        const row = screen.splice(0, width * 4);
 
-    let rows: number[][] = [];
-    for (let i = 0; i < height; i++) {
-      const row = screen.splice(0, width * 4);
-
-      let newRow: number[] = [];
-      for (let j = 0; j < width; j++) {
-        const pixel = row.splice(0, 4);
+        let newRow: number[] = [];
+        for (let j = 0; j < width; j++) {
+          const pixel = row.splice(0, 4);
+          for (let scalerIndex = 0; scalerIndex < scale; scalerIndex++) {
+            newRow.push(pixel);
+          }
+        }
         for (let scalerIndex = 0; scalerIndex < scale; scalerIndex++) {
-          newRow.push(pixel);
+          rows.push(newRow.flat());
         }
       }
-      for (let scalerIndex = 0; scalerIndex < scale; scalerIndex++) {
-        rows.push(newRow.flat());
-      }
+      png.data = Buffer.from(rows.flat());
     }
-    png.data = Buffer.from(rows.flat());
 
     const buffer = PNG.sync.write(png);
     return buffer;
