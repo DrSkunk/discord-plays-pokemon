@@ -68,11 +68,11 @@ export class GameboyClient {
         let newRow: number[] = [];
         for (let j = 0; j < width; j++) {
           const pixel = row.splice(0, 4);
-          for (let scalerIndex = 0; scalerIndex < scale; scalerIndex++) {
+          for (let scalerIndex = 0; scalerIndex < Scale; scalerIndex++) {
             newRow.push(pixel);
           }
         }
-        for (let scalerIndex = 0; scalerIndex < scale; scalerIndex++) {
+        for (let scalerIndex = 0; scalerIndex < Scale; scalerIndex++) {
           rows.push(newRow.flat());
         }
       }
