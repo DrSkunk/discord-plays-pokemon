@@ -1,4 +1,5 @@
-import Gameboy from 'serverboy';
+// import Gameboy from '../../serverboy.js/src/interface.js';
+const Gameboy = require('../../serverboy.js/src/interface.js');
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
 import { Reaction } from './Reaction';
@@ -11,6 +12,7 @@ export class GameboyClient {
   public static Keymap: KEYMAP;
   rendering: boolean;
   buffer: Buffer;
+  // keys: any;
 
   constructor() {
     this.gameboy = new Gameboy();
@@ -24,6 +26,7 @@ export class GameboyClient {
   }
 
   doFrame() {
+    // TODO subtract the key frame counter
     this.gameboy.doFrame();
   }
 
@@ -39,24 +42,22 @@ export class GameboyClient {
     }
   }
 
-  pressKey(key: Reaction) {
+  pressKey(key: string) {
     console.info(`Pressing ${key}`);
-    const actionMap = {
-      [Reaction['➡️']]: 'RIGHT',
-      [Reaction['⬅️']]: 'LEFT',
-      [Reaction['⬆️']]: 'UP',
-      [Reaction['⬇️']]: 'DOWN',
-      [Reaction['🅰️']]: 'A',
-      [Reaction['🅱']]: 'B',
-      [Reaction['👆']]: 'SELECT',
-      [Reaction['▶️']]: 'START',
-    };
-    const actionKey = actionMap[key];
-    this.gameboy.pressKey(actionKey);
+    // this.keys[key] = 5;
+
+    this.gameboy.pressKey(key);
+    this.gameboy.doFrame();
+    this.gameboy.pressKey(key);
+    this.gameboy.doFrame();
+    this.gameboy.pressKey(key);
+    this.gameboy.doFrame();
+    this.gameboy.pressKey(key);
+    this.gameboy.doFrame();
   }
 
   getFrame() {
-    if (this.rendering) {
+    if (!this.rendering) {
       this.rendering = true;
       const screen = this.gameboy.getScreen();
 

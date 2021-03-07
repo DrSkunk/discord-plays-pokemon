@@ -11,6 +11,7 @@ import {
 } from './Config';
 import { DiscordClient } from './DiscordClient';
 import { GameboyClient } from './GameboyClient';
+import { SocketServer } from './SocketServer';
 
 console.log('Starting Discord Plays Pokémon');
 
@@ -42,3 +43,6 @@ gameboyClient.start();
 
 const discordClient = new DiscordClient(DiscordToken, gameboyClient);
 discordClient.start();
+
+const socketServer = new SocketServer(gameboyClient);
+socketServer.start();

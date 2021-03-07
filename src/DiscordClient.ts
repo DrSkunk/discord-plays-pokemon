@@ -145,7 +145,19 @@ export class DiscordClient {
           Math.floor(Math.random() * topReactions.length)
         ] as Reaction;
 
-        this.gameboyClient.pressKey(action);
+        const actionMap = {
+          [Reaction['➡️']]: 'RIGHT',
+          [Reaction['⬅️']]: 'LEFT',
+          [Reaction['⬆️']]: 'UP',
+          [Reaction['⬇️']]: 'DOWN',
+          [Reaction['🅰️']]: 'A',
+          [Reaction['🅱']]: 'B',
+          [Reaction['👆']]: 'SELECT',
+          [Reaction['▶️']]: 'START',
+        };
+        const actionKey = actionMap[action];
+
+        this.gameboyClient.pressKey(actionKey);
       }
       this.sendingMessage = false;
     });

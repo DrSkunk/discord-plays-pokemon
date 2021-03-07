@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/pngjs": "^6.0.0",
+    "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",

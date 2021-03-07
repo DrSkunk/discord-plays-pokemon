@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DPM Viewer</title>
+  </head>
+  <body>
+    <canvas id="canvas" width="300" height="300"></canvas>
+    <div>
+      <button onclick="clickButton('UP')">⬆️</button>
+      <button onclick="clickButton('DOWN')">⬇️</button>
+      <button onclick="clickButton('LEFT')">⬅️</button>
+      <button onclick="clickButton('RIGHT')">➡️</button>
+      <button onclick="clickButton('A')">A</button>
+      <button onclick="clickButton('B')">B</button>
+      <button onclick="clickButton('SELECT')">SELECT</button>
+      <button onclick="clickButton('START')">START</button>
+      <button onclick="clickButton('SAVESTATE')">SAVESTATE</button>
+      <button onclick="clickButton('LOADSTATE')">LOADSTATE</button>
+    </div>
+    <script>
+      const ctx = document.getElementById('canvas').getContext('2d');
+      const url = 'ws://localhost:2020';
+      const webSocket = new WebSocket(url);
+      webSocket.onopen = () => {
+        console.log('Connected to server');
+      };
+      webSocket.onmessage = (event) => {
+        var img = new Image();
+        img.src = 'data:image/png;base64,' + event.data;
+        ctx.drawImage(img, 0, 0);
+      };
+      function clickButton(btn) {
+        console.log('Sending button ' + btn);
+        webSocket.send(btn);
+      }
+    </script>
+  </body>
+</html>

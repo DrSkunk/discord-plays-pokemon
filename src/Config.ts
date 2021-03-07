@@ -8,6 +8,7 @@ const Romfile = process.env.ROMFILE as string;
 const loadedGamemode = process.env.MODE as string;
 const DemocracyTimeoutString = process.env.DEMOCRACY_MODE_TIMEOUT as string;
 const ScaleString = process.env.SCALE as string;
+const WebPortString = process.env.WEB_PORT as string;
 
 if (
   loadedGamemode !== Gamemode.Anarchy &&
@@ -34,6 +35,13 @@ if (Scale < 1 || Scale > 6) {
   throw new Error('The scale must be between 1 and 6 inclusive');
 }
 
+let WebPort: number;
+try {
+  WebPort = Number.parseInt(WebPortString);
+} catch (error) {
+  throw new Error('The webport is not an integer');
+}
+
 export {
   Prefix,
   DiscordToken,
@@ -43,4 +51,5 @@ export {
   CurrentGamemode,
   DemocracyTimeout,
   Scale,
+  WebPort,
 };
