@@ -46,15 +46,37 @@ export class DiscordClient {
       this.channel = this.client.channels.cache.get(
         DiscordChannelId
       ) as TextChannel;
+      if (this.client.user) {
+        this.client.user
+          .setActivity(`${Prefix}help`, { type: 'LISTENING' })
+          .then((presence) =>
+            console.log(`Activity set to ${presence.activities[0].name}`)
+          )
+          .catch(console.error);
+      }
     });
 
     this.client.on('message', async (msg) => {
       if (msg.author.bot || msg.channel.id !== DiscordChannelId) {
         return;
       }
+      if (msg.content.startsWith(Prefix)) {
+        switch (msg.content.slice(1)) {
+          case 'help':
+            this.sendMessage('`-frame`');
+            break;
+          case 'frame':
+            await this.postFrameAndReact();
+            break;
+          default:
+            this.sendMessage(
+              `Unrecognized command. Type \`${Prefix}help\` for the list of commands.`
+            );
+            break;
+        }
+      }
       // if (!this.sendingMessage) {
       //   this.sendingMessage = true;
-      await this.postFrameAndReact();
       // }
     });
     this.client.login(this.token);
@@ -115,7 +137,6 @@ export class DiscordClient {
       const topReactions = Object.keys(reactionsCounter).filter(
         (reaction) => reactionsCounter[reaction] === maxValue
       );
-      console.log('reactionsCounter', reactionsCounter, maxValue, topReactions);
 
       if (topReactions.length === 0) {
         this.sendMessage(`No choice was made. type \`${Prefix}frame\``);

@@ -18,12 +18,14 @@ To start the application after setting the questions and the config file, run `n
 
 Copy `.env.example` to `.env` and fill in your details:
 
-- `DISCORD_TOKEN`: Your Discord bot token
-- `DISCORD_GUILD_ID`: The ID of the server/guild where the bot will run
+- `PREFIX`: The prefix for the commands.
+- `DISCORD_TOKEN`: Your Discord bot token.
+- `DISCORD_GUILD_ID`: The ID of the server/guild where the bot will run.
 - `DISCORD_CHANNEL_ID`: The ID of the text channel where the bot will listen to and post messages.
 - `ROMFILE`: Place your romfile in the `/roms` directory and use the filename here, like `pokemon.gb`
-- `MODE`: Either `ANARCHY` or `DEMOCRACY` (see below)
-- `DEMOCRACY_MODE_TIMEOUT`: Duration in milliseconds to wait for input in democracy mode, must be set in anarchy mode too, but it's not used then
+- `MODE`: Either `ANARCHY` or `DEMOCRACY` (see below).
+- `DEMOCRACY_MODE_TIMEOUT`: Duration in milliseconds to wait for input in democracy mode, must be set in anarchy mode too, but it's not used then.
+- `SCALE`: Scale of the output image to be sent as an image. base resolution is 160x144. Must be between 1 and 6 inclusive. 3 is the recommended maximum.
 
 You can create a Discord bot token by going to [the Discord developer portal](https://discord.com/developers/applications/) to create a new application. Then go to `Bot` and click `Copy` under `Token`.
 
