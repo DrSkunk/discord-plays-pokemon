@@ -1,9 +1,13 @@
-// import Gameboy from '../../serverboy.js/src/interface.js';
+// import Gameboy from 'serverboy';
 const Gameboy = require('../../serverboy.js/src/interface.js');
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
-import { Reaction } from './Reaction';
 import { Scale } from './Config';
+import { KEY_HOLD_DURATION, SCREEN_HEIGHT, SCREEN_WIDTH } from './Constants';
+
+type KeysToPress = {
+  [key: string]: number;
+};
 
 // TODO send audio to voice channel
 export class GameboyClient {
@@ -12,13 +16,14 @@ export class GameboyClient {
   public static Keymap: KEYMAP;
   rendering: boolean;
   buffer: Buffer;
-  // keys: any;
+  keysToPress: KeysToPress;
 
   constructor() {
     this.gameboy = new Gameboy();
     this.timer = null;
     this.rendering = false;
     this.buffer = Buffer.from([]);
+    this.keysToPress = {};
   }
 
   loadRom(rom: Buffer) {
@@ -26,14 +31,19 @@ export class GameboyClient {
   }
 
   doFrame() {
-    // TODO subtract the key frame counter
     this.gameboy.doFrame();
+    // This is to hold the button for multiple frames to aid button registration
+    Object.keys(this.keysToPress).forEach((key) => {
+      if (this.keysToPress[key] - 1 !== 0) {
+        this.keysToPress[key] -= 1;
+        this.gameboy.pressKey(key);
+      }
+    });
   }
 
   start() {
     // approximately 60 FPS
     this.timer = setInterval(() => this.doFrame(), 1000 / 60);
-    // this.timer = setInterval(() => this.pressKey(Reaction['▶️']), 1000);
   }
 
   stop() {
@@ -44,16 +54,7 @@ export class GameboyClient {
 
   pressKey(key: string) {
     console.info(`Pressing ${key}`);
-    // this.keys[key] = 5;
-
-    this.gameboy.pressKey(key);
-    this.gameboy.doFrame();
-    this.gameboy.pressKey(key);
-    this.gameboy.doFrame();
-    this.gameboy.pressKey(key);
-    this.gameboy.doFrame();
-    this.gameboy.pressKey(key);
-    this.gameboy.doFrame();
+    this.keysToPress[key] = KEY_HOLD_DURATION;
   }
 
   getFrame() {
@@ -61,9 +62,10 @@ export class GameboyClient {
       this.rendering = true;
       const screen = this.gameboy.getScreen();
 
-      const width = 160;
-      const height = 144;
-      const png = new PNG({ width: width * Scale, height: height * Scale });
+      const png = new PNG({
+        width: SCREEN_WIDTH * Scale,
+        height: SCREEN_HEIGHT * Scale,
+      });
 
       if (Scale === 1) {
         for (let i = 0; i < screen.length; i++) {
@@ -72,11 +74,12 @@ export class GameboyClient {
       } else {
         // TODO fix this inefficient code
         let rows: number[][] = [];
-        for (let i = 0; i < height; i++) {
-          const row = screen.splice(0, width * 4);
+        for (let i = 0; i < SCREEN_HEIGHT; i++) {
+          // Times 4 because of RGBA
+          const row = screen.splice(0, SCREEN_WIDTH * 4);
 
           let newRow: number[] = [];
-          for (let j = 0; j < width; j++) {
+          for (let j = 0; j < SCREEN_WIDTH; j++) {
             const pixel = row.splice(0, 4);
             for (let scalerIndex = 0; scalerIndex < Scale; scalerIndex++) {
               newRow.push(pixel);
