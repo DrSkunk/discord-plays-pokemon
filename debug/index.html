@@ -5,8 +5,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DPM Viewer</title>
+    <style>
+      #connection {
+        color: white;
+        height: 20px;
+      }
+      .connected {
+        background-color: green;
+      }
+      .disconnected {
+        background-color: red;
+      }
+    </style>
   </head>
   <body>
+    <div id="connection"></div>
     <canvas id="canvas" width="300" height="300"></canvas>
     <div>
       <button onclick="clickButton('UP')">⬆️</button>
@@ -21,21 +34,50 @@
       <button onclick="clickButton('LOADSTATE')">LOADSTATE</button>
     </div>
     <script>
-      const ctx = document.getElementById('canvas').getContext('2d');
       const url = 'ws://localhost:2020';
-      const webSocket = new WebSocket(url);
-      webSocket.onopen = () => {
-        console.log('Connected to server');
-      };
-      webSocket.onmessage = (event) => {
-        var img = new Image();
-        img.src = 'data:image/png;base64,' + event.data;
-        ctx.drawImage(img, 0, 0);
-      };
+      const ctx = document.getElementById('canvas').getContext('2d');
+      const connectedText = document.getElementById('connection');
+      let webSocket = new WebSocket(url);
+
+      function connected() {
+        connectedText.classList.remove('disconnected');
+        connectedText.classList.add('connected');
+        connectedText.innerText = 'Connected';
+      }
+
+      function disconnected() {
+        connectedText.classList.remove('connected');
+        connectedText.classList.add('disconnected');
+        connectedText.innerText = 'Disconnected';
+      }
+      disconnected();
+
+      function openConnection() {
+        webSocket = new WebSocket(url);
+
+        webSocket.onopen = () => {
+          console.log('Connected to server');
+          connected();
+        };
+
+        webSocket.onclose = () => {
+          console.log('The connection was lost. Retrying in 1 second.');
+          disconnected();
+          setTimeout(openConnection(), 1000);
+        };
+
+        webSocket.onmessage = (event) => {
+          var img = new Image();
+          img.src = 'data:image/png;base64,' + event.data;
+          ctx.drawImage(img, 0, 0);
+        };
+      }
+
       function clickButton(btn) {
         console.log('Sending button ' + btn);
         webSocket.send(btn);
       }
+      openConnection();
     </script>
   </body>
 </html>
