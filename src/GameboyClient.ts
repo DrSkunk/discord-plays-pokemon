@@ -1,5 +1,4 @@
-// import Gameboy from 'serverboy';
-const Gameboy = require('../../serverboy.js/src/interface.js');
+import Gameboy from 'serverboy';
 import fs from 'fs';
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
@@ -72,12 +71,12 @@ class GameboyClient {
         }
       } else {
         // TODO fix this inefficient code
-        let rows: number[][] = [];
+        const rows: number[][] = [];
         for (let i = 0; i < SCREEN_HEIGHT; i++) {
           // Times 4 because of RGBA
           const row = screen.splice(0, SCREEN_WIDTH * 4);
 
-          let newRow: number[] = [];
+          const newRow: number[] = [];
           for (let j = 0; j < SCREEN_WIDTH; j++) {
             const pixel = row.splice(0, 4);
             for (let scalerIndex = 0; scalerIndex < Scale; scalerIndex++) {
@@ -126,7 +125,7 @@ class GameboyClient {
   }
 }
 
-let instance = new GameboyClient();
+const instance = new GameboyClient();
 
 export function getGameboyInstance() {
   return instance;

@@ -40,7 +40,7 @@ async function postFrame() {
     '.\nWhich button do you want to press?',
     attachment
   );
-  let awaitReactionOptions: AwaitReactionsOptions = {
+  const awaitReactionOptions: AwaitReactionsOptions = {
     time: DemocracyTimeout + Object.values(Reaction).length * 1000,
   };
   if (CurrentGamemode === Gamemode.Anarchy) {

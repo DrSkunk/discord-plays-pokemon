@@ -54,6 +54,7 @@ class DiscordClient {
       const commandFiles = await globPromise(`${__dirname}/commands/*.{js,ts}`);
 
       for (const file of commandFiles) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const command = require(file) as Command;
         Log.info('Added command', command.names[0]);
         this._commands.push(command);
