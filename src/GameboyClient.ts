@@ -6,13 +6,10 @@ import { PNG } from 'pngjs';
 import { Scale } from './Config';
 import { KEY_HOLD_DURATION, SCREEN_HEIGHT, SCREEN_WIDTH } from './Constants';
 import { Log } from './Log';
-
-type KeysToPress = {
-  [key: string]: number;
-};
+import { KeysToPress } from './types/KeysToPress';
 
 // TODO send audio to voice channel
-export class GameboyClient {
+class GameboyClient {
   gameboy: any;
   timer: NodeJS.Timeout | null;
   public static Keymap: KEYMAP;
@@ -28,11 +25,11 @@ export class GameboyClient {
     this.keysToPress = {};
   }
 
-  loadRom(rom: Buffer) {
+  loadRom(rom: Buffer): void {
     this.gameboy.loadRom(rom);
   }
 
-  doFrame() {
+  doFrame(): void {
     this.gameboy.doFrame();
     // This is to hold the button for multiple frames to aid button registration
     Object.keys(this.keysToPress).forEach((key) => {
@@ -43,23 +40,23 @@ export class GameboyClient {
     });
   }
 
-  start() {
+  start(): void {
     // approximately 60 FPS
     this.timer = setInterval(() => this.doFrame(), 1000 / 60);
   }
 
-  stop() {
+  stop(): void {
     if (this.timer) {
       clearInterval(this.timer);
     }
   }
 
-  pressKey(key: string) {
+  pressKey(key: string): void {
     Log.info(`Pressing ${key}`);
     this.keysToPress[key] = KEY_HOLD_DURATION;
   }
 
-  getFrame() {
+  getFrame(): Buffer {
     if (!this.rendering) {
       this.rendering = true;
       const screen = this.gameboy.getScreen();
@@ -100,7 +97,7 @@ export class GameboyClient {
     return this.buffer;
   }
 
-  newSaveState(fileName?: string) {
+  newSaveState(fileName?: string): string {
     let savePath = fileName;
     if (savePath) {
       savePath.replace(/[^\w\s]/gi, '');
@@ -111,5 +108,12 @@ export class GameboyClient {
     const saveState = this.gameboy.saveState();
     fs.writeFileSync(savePath, JSON.stringify(saveState));
     Log.info('Saved new savefile to ', savePath);
+    return savePath;
   }
+}
+
+let instance = new GameboyClient();
+
+export function getGameboyInstance() {
+  return instance;
 }

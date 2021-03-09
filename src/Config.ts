@@ -1,4 +1,4 @@
-import { Gamemode } from './Gamemode';
+import { Gamemode } from './enums/Gamemode';
 
 const Prefix = process.env.PREFIX as string;
 const DiscordToken = process.env.DISCORD_TOKEN as string;

@@ -10,8 +10,8 @@ import {
   Romfile,
   SaveStateInterval,
 } from './Config';
-import { DiscordClient } from './DiscordClient';
-import { GameboyClient } from './GameboyClient';
+import { initDiscord, getDiscordInstance } from './DiscordClient';
+import { getGameboyInstance } from './GameboyClient';
 import { Log } from './Log';
 import { SocketServer } from './SocketServer';
 
@@ -39,14 +39,14 @@ try {
   process.exit(1);
 }
 
-const gameboyClient = new GameboyClient();
+const gameboyClient = getGameboyInstance();
 gameboyClient.loadRom(rom);
 gameboyClient.start();
 
-const discordClient = new DiscordClient(DiscordToken, gameboyClient);
-discordClient.start();
+initDiscord(DiscordToken);
+getDiscordInstance()!.start();
 
-const socketServer = new SocketServer(gameboyClient);
+const socketServer = new SocketServer();
 socketServer.start();
 
 if (SaveStateInterval > 0) {

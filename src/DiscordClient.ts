@@ -1,178 +1,118 @@
-import Discord, {
-  MessageAttachment,
-  TextChannel,
-  AwaitReactionsOptions,
-  User,
-  MessageReaction,
-} from 'discord.js';
-import {
-  CurrentGamemode,
-  DemocracyTimeout,
-  DiscordChannelId,
-  Prefix,
-} from './Config';
-import { GameboyClient } from './GameboyClient';
-import { Gamemode } from './Gamemode';
+import Discord, { MessageAttachment, TextChannel } from 'discord.js';
+import glob from 'glob'; // included by discord.js
+import { promisify } from 'util';
+import { DiscordChannelId, Prefix } from './Config';
 import { Log } from './Log';
-import { Reaction } from './Reaction';
+import { Command } from './types/Command';
 
-interface CollectedReactions {
-  [key: string]: Set<string>;
-}
+const globPromise = promisify(glob);
 
-interface ReactionsCounter {
-  [key: string]: number;
-}
+class DiscordClient {
+  getChannel() {
+    throw new Error('Method not implemented.');
+  }
+  private _token: string;
+  private _client: Discord.Client;
+  private _channel: Discord.TextChannel;
+  private commands: Command[];
+  public sendingMessage: boolean;
 
-export class DiscordClient {
-  private token: string;
-  client: Discord.Client;
-  gameboyClient: GameboyClient;
-  channel: Discord.TextChannel;
-  sendingMessage: boolean;
-
-  constructor(token: string, gameboyClient: GameboyClient) {
-    this.token = token;
-    this.client = new Discord.Client();
-    this.gameboyClient = gameboyClient;
-    this.sendingMessage = false;
-    this.channel = this.client.channels.cache.get(
+  constructor(token: string) {
+    this._token = token;
+    this._client = new Discord.Client();
+    this._channel = this._client.channels.cache.get(
       DiscordChannelId
     ) as TextChannel;
+    this.commands = [];
+    this.sendingMessage = false;
   }
 
   start() {
-    this.client.on('ready', () => {
+    this._client.on('ready', async () => {
       Log.info(`Logged in!`);
-      this.channel = this.client.channels.cache.get(
+      this._channel = this._client.channels.cache.get(
         DiscordChannelId
       ) as TextChannel;
-      if (this.client.user) {
-        this.client.user
+      if (this._client.user) {
+        this._client.user
           .setActivity(`${Prefix}help`, { type: 'LISTENING' })
           .then((presence) =>
             Log.info(`Activity set to ${presence.activities[0].name}`)
           )
           .catch(console.error);
       }
+      const commandFiles = await globPromise(`${__dirname}/commands/*.{js,ts}`);
+
+      for (const file of commandFiles) {
+        const command = require(file) as Command;
+        Log.info('Added command', command.name);
+        this.commands.push(command);
+      }
     });
 
-    this.client.on('message', async (msg) => {
-      if (msg.author.bot || msg.channel.id !== DiscordChannelId) {
+    this._client.on('message', async (message) => {
+      if (
+        message.author.bot ||
+        message.channel.id !== DiscordChannelId ||
+        !message.content.startsWith(Prefix)
+      ) {
         return;
       }
-      if (msg.content.startsWith(Prefix)) {
-        switch (msg.content.slice(1)) {
-          case 'help':
-            this.sendMessage('`-frame`');
-            break;
-          case 'frame':
-            await this.postFrameAndReact();
-            break;
-          default:
-            this.sendMessage(
-              `Unrecognized command. Type \`${Prefix}help\` for the list of commands.`
-            );
-            break;
-        }
+
+      const [commandName, ...args] = message.content
+        .slice(Prefix.length)
+        .split(/ +/);
+
+      const command = this.commands.find((c) => c.name === commandName);
+
+      if (command) {
+        command.execute(message, args);
       }
+      // const args = msg.content.slice(Prefix.length).trim().split(/ +/);
+      // if (args === undefined || args.length == 0) {
+      //   return;
+      // }
+      // const command = args[0].toLowerCase();
+      // switch (command) {
+      //   case 'frame':
+      //     await this.postFrameAndReact();
+      //     break;
+      //   case 'save':
+      //     if (args.length > 1) {
+      //       this.gameboyClient.newSaveState(args[1]);
+      //     } else {
+      //       this.gameboyClient.newSaveState();
+      //     }
+      //     break;
+      //   default:
+      //     this.sendMessage(
+      //       `Unrecognized command. Type \`${Prefix}help\` for the list of commands.`
+      //     );
+      //     break;
+      // }
+
       // if (!this.sendingMessage) {
       //   this.sendingMessage = true;
       // }
     });
-    this.client.login(this.token);
-  }
-
-  async postFrameAndReact() {
-    const buffer = this.gameboyClient.getFrame();
-    const attachment = new Discord.MessageAttachment(buffer, 'frame.png');
-
-    if (!this.channel) {
-      this.sendingMessage = false;
-      return;
-    }
-    const message = await this.sendMessage(
-      'Which button do you want to press?',
-      attachment
-    );
-
-    let awaitReactionOptions: AwaitReactionsOptions = {};
-    if (CurrentGamemode === Gamemode.Anarchy) {
-      awaitReactionOptions.max = 1;
-    } else {
-      awaitReactionOptions.time = DemocracyTimeout;
-      // awaitReactionOptions.errors = ['time'];
-    }
-    const filter = (reaction: MessageReaction, user: User) => {
-      const reactionName =
-        Reaction[reaction.emoji.name as keyof typeof Reaction];
-      return Object.values(Reaction).includes(reactionName) && !user.bot;
-    };
-
-    const collector = message.createReactionCollector(
-      filter,
-      awaitReactionOptions
-    );
-
-    const collectedReactions: CollectedReactions = {};
-
-    collector.on('collect', (reaction, user) => {
-      console.info(`Collected ${reaction.emoji.name} from ${user.tag}`);
-      if (!collectedReactions.hasOwnProperty(reaction.emoji.name)) {
-        collectedReactions[reaction.emoji.name] = new Set();
-      }
-      collectedReactions[reaction.emoji.name].add(user.tag);
-    });
-
-    collector.on('end', (collected) => {
-      const reactionsCounter: ReactionsCounter = {};
-      let maxValue = 0;
-      Object.keys(collectedReactions).forEach((reaction) => {
-        const { size } = collectedReactions[reaction];
-        reactionsCounter[reaction] = size;
-        if (size > maxValue) {
-          maxValue = size;
-        }
-      });
-
-      const topReactions = Object.keys(reactionsCounter).filter(
-        (reaction) => reactionsCounter[reaction] === maxValue
-      );
-
-      if (topReactions.length === 0) {
-        this.sendMessage(`No choice was made. type \`${Prefix}frame\``);
-      } else {
-        const action: Reaction = topReactions[
-          Math.floor(Math.random() * topReactions.length)
-        ] as Reaction;
-
-        const actionMap = {
-          [Reaction['➡️']]: 'RIGHT',
-          [Reaction['⬅️']]: 'LEFT',
-          [Reaction['⬆️']]: 'UP',
-          [Reaction['⬇️']]: 'DOWN',
-          [Reaction['🅰️']]: 'A',
-          [Reaction['🅱']]: 'B',
-          [Reaction['👆']]: 'SELECT',
-          [Reaction['▶️']]: 'START',
-        };
-        const actionKey = actionMap[action];
-
-        this.gameboyClient.pressKey(actionKey);
-      }
-      this.sendingMessage = false;
-    });
-
-    Object.values(Reaction).forEach(
-      async (reaction) => await message.react(reaction)
-    );
+    this._client.login(this._token);
   }
 
   async sendMessage(text: string, attachment?: MessageAttachment) {
     if (attachment) {
-      return this.channel.send(text, attachment);
+      return this._channel.send(text, attachment);
     } else {
-      return this.channel.send(text);
+      return this._channel.send(text);
     }
   }
+}
+
+let instance: DiscordClient | null = null;
+
+export function initDiscord(token: string) {
+  instance = new DiscordClient(token);
+}
+
+export function getDiscordInstance(): DiscordClient | null {
+  return instance;
 }

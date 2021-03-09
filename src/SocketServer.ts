@@ -2,18 +2,11 @@ import http from 'http';
 import fs from 'fs';
 import { WebPort } from './Config';
 import WebSocket from 'ws';
-import { WebSocketManager } from 'discord.js';
-import { GameboyClient } from './GameboyClient';
+import { getGameboyInstance } from './GameboyClient';
 import { Log } from './Log';
-import { SocketCommand } from './SocketCommand';
+import { SocketCommand } from './enums/SocketCommand';
 
 export class SocketServer {
-  private gameboyClient: GameboyClient;
-
-  constructor(gameboyClient: GameboyClient) {
-    this.gameboyClient = gameboyClient;
-  }
-
   start() {
     const server = http.createServer((req, res) => {
       res.writeHead(200, { 'content-type': 'text/html' });
@@ -38,7 +31,7 @@ export class SocketServer {
         }
         switch (data.command as SocketCommand) {
           case SocketCommand.SaveState:
-            this.gameboyClient.newSaveState();
+            getGameboyInstance().newSaveState();
             break;
           case SocketCommand.LoadState:
             const fileName = data.name;
@@ -46,7 +39,7 @@ export class SocketServer {
               const saveState = JSON.parse(
                 fs.readFileSync('./saves/' + fileName).toString()
               );
-              this.gameboyClient.gameboy.returnFromState(saveState);
+              getGameboyInstance().gameboy.returnFromState(saveState);
             } catch (error) {
               Log.error('Failed to load savestate', fileName, error);
             }
@@ -59,7 +52,7 @@ export class SocketServer {
             ws.send(JSON.stringify({ command: 'saveStates', saveStates }));
             break;
           case SocketCommand.PressKey:
-            this.gameboyClient.pressKey(data.key);
+            getGameboyInstance().pressKey(data.key);
             break;
           default:
             Log.warn('Received invalid socket command', data);
@@ -71,7 +64,9 @@ export class SocketServer {
     setInterval(() => {
       if (wss.clients.size != 0) {
         wss.clients.forEach((client) => {
-          const imageString = this.gameboyClient.getFrame().toString('base64');
+          const imageString = getGameboyInstance()
+            .getFrame()
+            .toString('base64');
           client.send(JSON.stringify({ command: 'frame', imageString }));
         });
       }
