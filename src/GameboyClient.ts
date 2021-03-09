@@ -9,7 +9,7 @@ import { KeysToPress } from './types/KeysToPress';
 
 // TODO send audio to voice channel
 class GameboyClient {
-  private _gameboy: any;
+  private _gameboy: Gameboy;
   private _timer: NodeJS.Timeout | null;
   private _rendering: boolean;
   private _buffer: Buffer;
@@ -80,7 +80,7 @@ class GameboyClient {
           for (let j = 0; j < SCREEN_WIDTH; j++) {
             const pixel = row.splice(0, 4);
             for (let scalerIndex = 0; scalerIndex < Scale; scalerIndex++) {
-              newRow.push(pixel);
+              newRow.push(...pixel);
             }
           }
           for (let scalerIndex = 0; scalerIndex < Scale; scalerIndex++) {

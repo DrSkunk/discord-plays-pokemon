@@ -5,6 +5,7 @@ import WebSocket from 'ws';
 import { getGameboyInstance } from './GameboyClient';
 import { Log } from './Log';
 import { SocketCommand } from './enums/SocketCommand';
+import { DEFAULT_WEB_PORT } from './Constants';
 
 export class SocketServer {
   start(): void {
@@ -12,16 +13,16 @@ export class SocketServer {
       res.writeHead(200, { 'content-type': 'text/html' });
       fs.createReadStream('./debug/index.html').pipe(res);
     });
-
-    server.listen(WebPort || 2020, function () {
-      Log.info('webserver started');
+    const port = WebPort || DEFAULT_WEB_PORT;
+    server.listen(port, function () {
+      Log.info('Webserver started on port ' + WebPort);
     });
 
     const wss = new WebSocket.Server({ server });
 
     wss.on('connection', (ws) => {
       ws.on('message', (rawData) => {
-        Log.info('received from socket client:', rawData);
+        Log.info('Received from socket client:', rawData);
         let data;
         try {
           data = JSON.parse(rawData.toString());

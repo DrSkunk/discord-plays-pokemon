@@ -1,12 +1,14 @@
-// TODO type definitions
 declare module 'serverboy' {
   namespace serverboy {}
   export default class Gameboy {
     constructor();
-    public static KEYMAP: {
-      [key: string]: number;
-    };
-    loadRom(): string;
+
+    loadRom(rom: Buffer): void;
+    doFrame(): void;
+    pressKey(key: string): void;
+    getScreen(): number[];
+    saveState(): void;
+    returnFromState(saveState: number[]): void;
   }
   export type KEYMAP = {
     [key: string]: number;
