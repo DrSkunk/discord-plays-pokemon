@@ -2,12 +2,15 @@ import dotenv, { config } from 'dotenv';
 dotenv.config();
 import fs from 'fs';
 import {
+  Prefix,
+  DiscordToken,
+  DiscordGuildId,
+  DiscordChannelId,
+  Romfile,
   CurrentGamemode,
   DemocracyTimeout,
-  DiscordChannelId,
-  DiscordGuildId,
-  DiscordToken,
-  Romfile,
+  Scale,
+  WebPort,
   SaveStateInterval,
 } from './Config';
 import { initDiscord, getDiscordInstance } from './DiscordClient';
@@ -18,14 +21,20 @@ import { SocketServer } from './SocketServer';
 Log.info('Starting Discord Plays Pokémon');
 
 if (
+  !Prefix ||
   !DiscordToken ||
   !DiscordGuildId ||
   !DiscordChannelId ||
   !Romfile ||
   !CurrentGamemode ||
-  !DemocracyTimeout
+  !DemocracyTimeout ||
+  !Scale ||
+  !WebPort ||
+  !SaveStateInterval
 ) {
-  console.error('Not all values are set in your .env file');
+  console.error(
+    'Not all values are set in your .env file. See .env.example for all values'
+  );
   process.exit(1);
 }
 
