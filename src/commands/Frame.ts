@@ -1,5 +1,4 @@
 import Discord, {
-  Message,
   AwaitReactionsOptions,
   User,
   MessageReaction,
@@ -21,12 +20,14 @@ const command: Command = {
   execute,
 };
 
-function execute(msg: Message, args: string[]) {
-  const client = getDiscordInstance()!;
-  if (client.sendingMessage) {
-    client.sendMessage('Please use the previous message.');
-  } else {
-    postFrame();
+function execute(): void {
+  const client = getDiscordInstance();
+  if (client) {
+    if (client.sendingMessage) {
+      client.sendMessage('Please use the previous message.');
+    } else {
+      postFrame();
+    }
   }
 }
 
@@ -34,7 +35,10 @@ async function postFrame() {
   let reactionsLoaded = false;
   const buffer = getGameboyInstance().getFrame();
   const attachment = new Discord.MessageAttachment(buffer, 'frame.png');
-  const client = getDiscordInstance()!;
+  const client = getDiscordInstance();
+  if (!client) {
+    throw new Error('Discord client not initialised');
+  }
 
   const message = await client.sendMessage(
     '.\nWhich button do you want to press?',
@@ -64,7 +68,7 @@ async function postFrame() {
     collectedReactions[reaction.emoji.name].add(user.tag);
   });
 
-  collector.on('end', (collected) => {
+  collector.on('end', () => {
     const reactionsCounter: ReactionsCounter = {};
     let maxValue = 0;
     Object.keys(collectedReactions).forEach((reaction) => {
@@ -119,7 +123,10 @@ async function postFrame() {
 }
 
 function postNewFrame() {
-  const client = getDiscordInstance()!;
+  const client = getDiscordInstance();
+  if (!client) {
+    throw new Error('Discord client not initialised');
+  }
   if (client.failedAttempts >= MAX_FAILED_ATTEMPTS) {
     client.failedAttempts = 0;
     client.sendMessage(`No choice was made after ${MAX_FAILED_ATTEMPTS} attempts, stopping automatic frame posting.

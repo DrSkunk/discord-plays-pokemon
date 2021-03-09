@@ -1,4 +1,4 @@
-import { Message, MessageEmbed } from 'discord.js';
+import { MessageEmbed } from 'discord.js';
 import { Prefix } from '../Config';
 import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
@@ -9,11 +9,14 @@ const command: Command = {
   execute,
 };
 
-async function execute(msg: Message, args: string[]) {
-  const client = getDiscordInstance()!;
+function execute(): void {
+  const client = getDiscordInstance();
+  if (!client) {
+    throw new Error('Discord did not initialize');
+  }
   const exampleEmbed = new MessageEmbed();
 
-  getDiscordInstance()!.commands.forEach((command) => {
+  client.commands.forEach((command) => {
     let description = command.description;
     if (command.names.length > 1) {
       description += '\n Aliases: ';

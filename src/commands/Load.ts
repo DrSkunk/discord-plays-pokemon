@@ -10,8 +10,11 @@ const command: Command = {
   execute,
 };
 
-async function execute(msg: Message, args: string[]) {
-  const client = getDiscordInstance()!;
+function execute(_msg: Message, args: string[]): void {
+  const client = getDiscordInstance();
+  if (!client) {
+    throw new Error('Discord did not initialize');
+  }
   const saveStates = getGameboyInstance().getSaveStates();
   if (args.length === 0) {
     const reply = `\`\`\`\

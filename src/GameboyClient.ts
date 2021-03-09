@@ -9,56 +9,56 @@ import { KeysToPress } from './types/KeysToPress';
 
 // TODO send audio to voice channel
 class GameboyClient {
-  gameboy: any;
-  timer: NodeJS.Timeout | null;
+  private _gameboy: any;
+  private _timer: NodeJS.Timeout | null;
+  private _rendering: boolean;
+  private _buffer: Buffer;
+  private _keysToPress: KeysToPress;
   public static Keymap: KEYMAP;
-  rendering: boolean;
-  buffer: Buffer;
-  keysToPress: KeysToPress;
 
   constructor() {
-    this.gameboy = new Gameboy();
-    this.timer = null;
-    this.rendering = false;
-    this.buffer = Buffer.from([]);
-    this.keysToPress = {};
+    this._gameboy = new Gameboy();
+    this._timer = null;
+    this._rendering = false;
+    this._buffer = Buffer.from([]);
+    this._keysToPress = {};
   }
 
   loadRom(rom: Buffer): void {
-    this.gameboy.loadRom(rom);
+    this._gameboy.loadRom(rom);
   }
 
   doFrame(): void {
-    this.gameboy.doFrame();
+    this._gameboy.doFrame();
     // This is to hold the button for multiple frames to aid button registration
-    Object.keys(this.keysToPress).forEach((key) => {
-      if (this.keysToPress[key] - 1 !== 0) {
-        this.keysToPress[key] -= 1;
-        this.gameboy.pressKey(key);
+    Object.keys(this._keysToPress).forEach((key) => {
+      if (this._keysToPress[key] - 1 !== 0) {
+        this._keysToPress[key] -= 1;
+        this._gameboy.pressKey(key);
       }
     });
   }
 
   start(): void {
     // approximately 60 FPS
-    this.timer = setInterval(() => this.doFrame(), 1000 / 60);
+    this._timer = setInterval(() => this.doFrame(), 1000 / 60);
   }
 
   stop(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
+    if (this._timer) {
+      clearInterval(this._timer);
     }
   }
 
   pressKey(key: string): void {
     Log.info(`Pressing ${key}`);
-    this.keysToPress[key] = KEY_HOLD_DURATION;
+    this._keysToPress[key] = KEY_HOLD_DURATION;
   }
 
   getFrame(): Buffer {
-    if (!this.rendering) {
-      this.rendering = true;
-      const screen = this.gameboy.getScreen();
+    if (!this._rendering) {
+      this._rendering = true;
+      const screen = this._gameboy.getScreen();
 
       const png = new PNG({
         width: SCREEN_WIDTH * Scale,
@@ -90,10 +90,10 @@ class GameboyClient {
         png.data = Buffer.from(rows.flat());
       }
 
-      this.buffer = PNG.sync.write(png);
-      this.rendering = false;
+      this._buffer = PNG.sync.write(png);
+      this._rendering = false;
     }
-    return this.buffer;
+    return this._buffer;
   }
 
   newSaveState(fileName?: string): string {
@@ -104,20 +104,20 @@ class GameboyClient {
       savePath = new Date().toISOString();
     }
     savePath = './saves/' + savePath + '.sav';
-    const saveState = this.gameboy.saveState();
+    const saveState = this._gameboy.saveState();
     fs.writeFileSync(savePath, JSON.stringify(saveState));
     Log.info('Saved new savefile to ', savePath);
     return savePath;
   }
 
-  loadSaveState(fileName: any) {
+  loadSaveState(fileName: string) {
     const saveState = JSON.parse(
       fs.readFileSync('./saves/' + fileName).toString()
     );
-    this.gameboy.returnFromState(saveState);
+    this._gameboy.returnFromState(saveState);
   }
 
-  getSaveStates() {
+  getSaveStates(): string[] {
     const saveStates = fs
       .readdirSync('./saves')
       .filter((file) => file.endsWith('.sav'));
@@ -127,6 +127,6 @@ class GameboyClient {
 
 const instance = new GameboyClient();
 
-export function getGameboyInstance() {
+export function getGameboyInstance(): GameboyClient {
   return instance;
 }

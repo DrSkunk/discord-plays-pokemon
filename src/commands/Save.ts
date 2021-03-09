@@ -10,7 +10,11 @@ const command: Command = {
   execute,
 };
 
-async function execute(msg: Message, args: string[]) {
+function execute(_msg: Message, args: string[]): void {
+  const client = getDiscordInstance();
+  if (!client) {
+    throw new Error('Discord did not initialize');
+  }
   let savedFileLocation: string;
   if (args.length === 0) {
     savedFileLocation = getGameboyInstance().newSaveState();
@@ -18,6 +22,6 @@ async function execute(msg: Message, args: string[]) {
     const filename = args.join('_');
     savedFileLocation = getGameboyInstance().newSaveState(filename);
   }
-  getDiscordInstance()!.sendMessage(`Saved to \`${savedFileLocation}\``);
+  client.sendMessage(`Saved to \`${savedFileLocation}\``);
 }
 export = command;

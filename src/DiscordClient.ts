@@ -101,7 +101,7 @@ class DiscordClient {
 
 let instance: DiscordClient | null = null;
 
-export function initDiscord(token: string) {
+export function initDiscord(token: string): void {
   instance = new DiscordClient(token);
 }
 

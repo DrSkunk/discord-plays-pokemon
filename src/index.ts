@@ -53,7 +53,11 @@ gameboyClient.loadRom(rom);
 gameboyClient.start();
 
 initDiscord(DiscordToken);
-getDiscordInstance()!.start();
+const discordClient = getDiscordInstance();
+if (!discordClient) {
+  throw new Error('Discord did not initialize');
+}
+discordClient.start();
 
 const socketServer = new SocketServer();
 socketServer.start();

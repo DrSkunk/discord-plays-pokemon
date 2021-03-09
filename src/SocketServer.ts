@@ -7,7 +7,7 @@ import { Log } from './Log';
 import { SocketCommand } from './enums/SocketCommand';
 
 export class SocketServer {
-  start() {
+  start(): void {
     const server = http.createServer((req, res) => {
       res.writeHead(200, { 'content-type': 'text/html' });
       fs.createReadStream('./debug/index.html').pipe(res);
