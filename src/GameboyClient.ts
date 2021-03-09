@@ -110,6 +110,20 @@ class GameboyClient {
     Log.info('Saved new savefile to ', savePath);
     return savePath;
   }
+
+  loadSaveState(fileName: any) {
+    const saveState = JSON.parse(
+      fs.readFileSync('./saves/' + fileName).toString()
+    );
+    this.gameboy.returnFromState(saveState);
+  }
+
+  getSaveStates() {
+    const saveStates = fs
+      .readdirSync('./saves')
+      .filter((file) => file.endsWith('.sav'));
+    return saveStates;
+  }
 }
 
 let instance = new GameboyClient();

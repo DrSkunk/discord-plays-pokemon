@@ -36,19 +36,14 @@ export class SocketServer {
           case SocketCommand.LoadState:
             const fileName = data.name;
             try {
-              const saveState = JSON.parse(
-                fs.readFileSync('./saves/' + fileName).toString()
-              );
-              getGameboyInstance().gameboy.returnFromState(saveState);
+              getGameboyInstance().loadSaveState(fileName);
             } catch (error) {
               Log.error('Failed to load savestate', fileName, error);
             }
 
             break;
           case SocketCommand.GetStates:
-            const saveStates = fs
-              .readdirSync('./saves')
-              .filter((file) => file.endsWith('.sav'));
+            const saveStates = getGameboyInstance().getSaveStates();
             ws.send(JSON.stringify({ command: 'saveStates', saveStates }));
             break;
           case SocketCommand.PressKey:

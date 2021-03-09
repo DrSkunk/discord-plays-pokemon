@@ -15,7 +15,7 @@ import { ReactionsCounter } from '../types/ReactionsCounter';
 
 const command: Command = {
   name: 'frame',
-  description: 'Frame!',
+  description: 'Show the latest frame and listen for buttons to press.',
   execute,
 };
 
