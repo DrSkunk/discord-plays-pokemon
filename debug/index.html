@@ -22,21 +22,31 @@
     <div id="connection"></div>
     <canvas id="canvas" width="300" height="300"></canvas>
     <div>
-      <button onclick="clickButton('UP')">⬆️</button>
-      <button onclick="clickButton('DOWN')">⬇️</button>
-      <button onclick="clickButton('LEFT')">⬅️</button>
-      <button onclick="clickButton('RIGHT')">➡️</button>
-      <button onclick="clickButton('A')">A</button>
-      <button onclick="clickButton('B')">B</button>
-      <button onclick="clickButton('SELECT')">SELECT</button>
-      <button onclick="clickButton('START')">START</button>
-      <button onclick="clickButton('SAVESTATE')">SAVESTATE</button>
-      <button onclick="clickButton('LOADSTATE')">LOADSTATE</button>
+      <button onclick="pressKey('UP')">⬆️</button>
+      <button onclick="pressKey('DOWN')">⬇️</button>
+      <button onclick="pressKey('LEFT')">⬅️</button>
+      <button onclick="pressKey('RIGHT')">➡️</button>
+      <button onclick="pressKey('A')">A</button>
+      <button onclick="pressKey('B')">B</button>
+      <button onclick="pressKey('SELECT')">SELECT</button>
+      <button onclick="pressKey('START')">START</button>
+    </div>
+    <div>
+      <button onclick="saveState()">New savestate</button>
+    </div>
+    <div>
+      <button onclick="updateStatesList()">Update savestates list</button>
+
+      <select id="savestates"></select>
+    </div>
+    <div>
+      <button onclick="loadState()">Load selected savestate</button>
     </div>
     <script>
       const url = 'ws://localhost:2020';
       const ctx = document.getElementById('canvas').getContext('2d');
       const connectedText = document.getElementById('connection');
+      const saveStatesList = document.getElementById('savestates');
       let webSocket = new WebSocket(url);
 
       function connected() {
@@ -67,15 +77,49 @@
         };
 
         webSocket.onmessage = (event) => {
-          var img = new Image();
-          img.src = 'data:image/png;base64,' + event.data;
-          ctx.drawImage(img, 0, 0);
+          const msg = JSON.parse(event.data);
+          console.log('received command', msg.command);
+
+          switch (msg.command) {
+            case 'frame':
+              const img = new Image();
+              img.src = 'data:image/png;base64,' + msg.imageString;
+              ctx.drawImage(img, 0, 0);
+              break;
+            case 'saveStates':
+              for (let i = saveStatesList.options.length - 1; i >= 0; i--) {
+                saveStatesList.remove(i);
+              }
+              msg.saveStates.forEach((saveState) => {
+                const option = document.createElement('option');
+                option.text = saveState;
+                option.value = saveState;
+                saveStatesList.add(option);
+              });
+              break;
+          }
         };
       }
 
-      function clickButton(btn) {
-        console.log('Sending button ' + btn);
-        webSocket.send(btn);
+      function pressKey(key) {
+        send({ command: 'pressKey', key });
+      }
+
+      function updateStatesList() {
+        send({ command: 'getStates' });
+      }
+
+      function saveState() {
+        send({ command: 'saveState' });
+      }
+
+      function loadState() {
+        send({ command: 'loadState', name: saveStatesList.value });
+      }
+
+      function send(msg) {
+        console.log('sending', msg);
+        webSocket.send(JSON.stringify(msg));
       }
       openConnection();
     </script>

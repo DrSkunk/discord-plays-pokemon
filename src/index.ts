@@ -11,9 +11,10 @@ import {
 } from './Config';
 import { DiscordClient } from './DiscordClient';
 import { GameboyClient } from './GameboyClient';
+import { Log } from './Log';
 import { SocketServer } from './SocketServer';
 
-console.log('Starting Discord Plays Pokémon');
+Log.info('Starting Discord Plays Pokémon');
 
 if (
   !DiscordToken ||

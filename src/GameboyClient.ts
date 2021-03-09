@@ -1,9 +1,11 @@
 // import Gameboy from 'serverboy';
 const Gameboy = require('../../serverboy.js/src/interface.js');
+import fs from 'fs';
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
 import { Scale } from './Config';
 import { KEY_HOLD_DURATION, SCREEN_HEIGHT, SCREEN_WIDTH } from './Constants';
+import { Log } from './Log';
 
 type KeysToPress = {
   [key: string]: number;
@@ -53,7 +55,7 @@ export class GameboyClient {
   }
 
   pressKey(key: string) {
-    console.info(`Pressing ${key}`);
+    Log.info(`Pressing ${key}`);
     this.keysToPress[key] = KEY_HOLD_DURATION;
   }
 
@@ -96,5 +98,18 @@ export class GameboyClient {
       this.rendering = false;
     }
     return this.buffer;
+  }
+
+  newSaveState(fileName?: string) {
+    let savePath = fileName;
+    if (savePath) {
+      savePath.replace(/[^\w\s]/gi, '');
+    } else {
+      savePath = new Date().toISOString();
+    }
+    savePath = './saves/' + savePath + '.sav';
+    const saveState = this.gameboy.saveState();
+    fs.writeFileSync(savePath, JSON.stringify(saveState));
+    Log.info('saved new savefile to ', savePath);
   }
 }

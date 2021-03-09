@@ -13,6 +13,7 @@ import {
 } from './Config';
 import { GameboyClient } from './GameboyClient';
 import { Gamemode } from './Gamemode';
+import { Log } from './Log';
 import { Reaction } from './Reaction';
 
 interface CollectedReactions {
@@ -42,7 +43,7 @@ export class DiscordClient {
 
   start() {
     this.client.on('ready', () => {
-      console.log(`Logged in!`);
+      Log.info(`Logged in!`);
       this.channel = this.client.channels.cache.get(
         DiscordChannelId
       ) as TextChannel;
@@ -50,7 +51,7 @@ export class DiscordClient {
         this.client.user
           .setActivity(`${Prefix}help`, { type: 'LISTENING' })
           .then((presence) =>
-            console.log(`Activity set to ${presence.activities[0].name}`)
+            Log.info(`Activity set to ${presence.activities[0].name}`)
           )
           .catch(console.error);
       }
