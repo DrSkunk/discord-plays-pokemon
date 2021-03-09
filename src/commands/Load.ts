@@ -1,11 +1,10 @@
-import { Message, MessageEmbed } from 'discord.js';
-import { Prefix } from '../Config';
+import { Message } from 'discord.js';
 import { getDiscordInstance } from '../DiscordClient';
 import { getGameboyInstance } from '../GameboyClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  name: 'load',
+  names: ['load', 'l'],
   description:
     'Load a savefile. Run without a filename to list all available saves.',
   execute,

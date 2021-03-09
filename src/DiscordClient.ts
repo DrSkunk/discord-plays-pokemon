@@ -3,7 +3,7 @@ import Discord, {
   MessageEmbed,
   TextChannel,
 } from 'discord.js';
-import glob from 'glob'; // included by discord.js
+import glob from 'glob';
 import { promisify } from 'util';
 import { DiscordChannelId, Prefix } from './Config';
 import { Log } from './Log';
@@ -55,7 +55,7 @@ class DiscordClient {
 
       for (const file of commandFiles) {
         const command = require(file) as Command;
-        Log.info('Added command', command.name);
+        Log.info('Added command', command.names[0]);
         this._commands.push(command);
       }
     });
@@ -73,7 +73,7 @@ class DiscordClient {
         .slice(Prefix.length)
         .split(/ +/);
 
-      const command = this._commands.find((c) => c.name === commandName);
+      const command = this._commands.find((c) => c.names.includes(commandName));
 
       if (command) {
         command.execute(message, args);

@@ -4,7 +4,7 @@ import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  name: 'help',
+  names: ['help', 'h'],
   description: 'Display this help information',
   execute,
 };
@@ -14,7 +14,15 @@ async function execute(msg: Message, args: string[]) {
   const exampleEmbed = new MessageEmbed();
 
   getDiscordInstance()!.commands.forEach((command) => {
-    exampleEmbed.addField(Prefix + command.name, command.description);
+    let description = command.description;
+    if (command.names.length > 1) {
+      description += '\n Aliases: ';
+      description += command.names
+        .slice(1)
+        .map((name) => `**${Prefix}${name}**`)
+        .join(', ');
+    }
+    exampleEmbed.addField(Prefix + command.names[0], description);
   });
 
   exampleEmbed.setFooter(

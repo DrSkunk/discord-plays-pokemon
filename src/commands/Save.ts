@@ -4,7 +4,7 @@ import { getGameboyInstance } from '../GameboyClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  name: 'save',
+  names: ['save', 's'],
   description:
     'Save the current state to a new file. Optionally supply a filename, otherwise the timestamp will be used',
   execute,
