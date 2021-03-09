@@ -20,6 +20,7 @@ class DiscordClient {
   private _channel: Discord.TextChannel;
   private _commands: Command[];
   public sendingMessage: boolean;
+  public failedAttempts: number;
 
   get commands() {
     return this._commands;
@@ -33,6 +34,7 @@ class DiscordClient {
     ) as TextChannel;
     this._commands = [];
     this.sendingMessage = false;
+    this.failedAttempts = 0;
   }
 
   start() {
@@ -47,7 +49,7 @@ class DiscordClient {
           .then((presence) =>
             Log.info(`Activity set to ${presence.activities[0].name}`)
           )
-          .catch(console.error);
+          .catch(Log.error);
       }
       const commandFiles = await globPromise(`${__dirname}/commands/*.{js,ts}`);
 

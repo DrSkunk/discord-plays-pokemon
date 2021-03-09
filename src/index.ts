@@ -1,4 +1,4 @@
-import dotenv, { config } from 'dotenv';
+import dotenv from 'dotenv';
 dotenv.config();
 import fs from 'fs';
 import {
@@ -32,7 +32,7 @@ if (
   !WebPort ||
   !SaveStateInterval
 ) {
-  console.error(
+  Log.error(
     'Not all values are set in your .env file. See .env.example for all values'
   );
   process.exit(1);
@@ -42,7 +42,7 @@ let rom: Buffer;
 try {
   rom = fs.readFileSync('./roms/' + Romfile);
 } catch (error) {
-  console.error(
+  Log.error(
     `Rom file ${Romfile} could not be found in your './roms' directory`
   );
   process.exit(1);
