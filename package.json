@@ -1,7 +1,7 @@
 {
   "name": "discord-plays-pokemon",
   "version": "0.1.0",
-  "description": "",
+  "description": "Play any gameboy game together with friends by using Discord",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node dist/index.js",
@@ -48,5 +48,9 @@
     "*.{json,md,html}": [
       "prettier --write"
     ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DrSkunk/discord-plays-pokemon.git"
   }
 }
