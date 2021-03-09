@@ -9,6 +9,7 @@ const loadedGamemode = process.env.MODE as string;
 const DemocracyTimeoutString = process.env.DEMOCRACY_MODE_TIMEOUT as string;
 const ScaleString = process.env.SCALE as string;
 const WebPortString = process.env.WEB_PORT as string;
+const SaveStateIntervalString = process.env.SAVESTATE_INTERVAL as string;
 
 if (
   loadedGamemode !== Gamemode.Anarchy &&
@@ -42,6 +43,13 @@ try {
   throw new Error('The webport is not an integer');
 }
 
+let SaveStateInterval: number;
+try {
+  SaveStateInterval = Number.parseInt(SaveStateIntervalString);
+} catch (error) {
+  throw new Error('The savestate interval is not an integer');
+}
+
 export {
   Prefix,
   DiscordToken,
@@ -52,4 +60,5 @@ export {
   DemocracyTimeout,
   Scale,
   WebPort,
+  SaveStateInterval,
 };

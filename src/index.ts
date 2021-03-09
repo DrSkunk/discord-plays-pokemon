@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv, { config } from 'dotenv';
 dotenv.config();
 import fs from 'fs';
 import {
@@ -8,6 +8,7 @@ import {
   DiscordGuildId,
   DiscordToken,
   Romfile,
+  SaveStateInterval,
 } from './Config';
 import { DiscordClient } from './DiscordClient';
 import { GameboyClient } from './GameboyClient';
@@ -47,3 +48,10 @@ discordClient.start();
 
 const socketServer = new SocketServer(gameboyClient);
 socketServer.start();
+
+if (SaveStateInterval > 0) {
+  setInterval(
+    () => gameboyClient.newSaveState(),
+    SaveStateInterval * 1000 * 60
+  );
+}

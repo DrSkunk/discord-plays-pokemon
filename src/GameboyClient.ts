@@ -110,6 +110,6 @@ export class GameboyClient {
     savePath = './saves/' + savePath + '.sav';
     const saveState = this.gameboy.saveState();
     fs.writeFileSync(savePath, JSON.stringify(saveState));
-    Log.info('saved new savefile to ', savePath);
+    Log.info('Saved new savefile to ', savePath);
   }
 }
