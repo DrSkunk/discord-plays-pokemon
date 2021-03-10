@@ -93,7 +93,7 @@ async function postFrame() {
       const actionMap = {
         [Reaction['➡️']]: 'RIGHT',
         [Reaction['⬅️']]: 'LEFT',
-        [Reaction['🔼']]: 'UP',
+        [Reaction['⬆️']]: 'UP',
         [Reaction['⬇️']]: 'DOWN',
         [Reaction['🅰️']]: 'A',
         [Reaction['🅱']]: 'B',
