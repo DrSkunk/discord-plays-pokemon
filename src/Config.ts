@@ -24,7 +24,7 @@ try {
   throw new Error('The democracy timeout is not a number');
 }
 
-const CurrentGamemode: Gamemode = loadedGamemode;
+let CurrentGamemode: Gamemode = loadedGamemode;
 
 let Scale: number;
 try {
@@ -50,6 +50,10 @@ try {
   throw new Error('The savestate interval is not an integer');
 }
 
+function setGameMode(gamemode: Gamemode): void {
+  CurrentGamemode = gamemode;
+}
+
 export {
   Prefix,
   DiscordToken,
@@ -57,6 +61,7 @@ export {
   DiscordChannelId,
   Romfile,
   CurrentGamemode,
+  setGameMode,
   DemocracyTimeout,
   Scale,
   WebPort,
