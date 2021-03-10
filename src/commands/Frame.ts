@@ -42,7 +42,7 @@ async function postFrame() {
   }
 
   const message = await client.sendMessage(
-    'Which button do you want to press?',
+    'Which button do you want to press?\n🔄 gives a new frame',
     attachment
   );
   const awaitReactionOptions: AwaitReactionsOptions = {
@@ -70,6 +70,7 @@ async function postFrame() {
   });
 
   collector.on('end', () => {
+    client.failedAttempts = 0;
     const reactionsCounter: ReactionsCounter = {};
     let maxValue = 0;
     Object.keys(collectedReactions).forEach((reaction) => {
@@ -90,24 +91,28 @@ async function postFrame() {
       const action: Reaction = topReactions[
         Math.floor(Math.random() * topReactions.length)
       ] as Reaction;
-      const actionMap = {
-        [Reaction['➡️']]: 'RIGHT',
-        [Reaction['⬅️']]: 'LEFT',
-        [Reaction['⬆️']]: 'UP',
-        [Reaction['⬇️']]: 'DOWN',
-        [Reaction['🅰️']]: 'A',
-        [Reaction['🅱']]: 'B',
-        [Reaction['👆']]: 'SELECT',
-        [Reaction['▶️']]: 'START',
-      };
-      const actionKey = actionMap[action];
-      getGameboyInstance().pressKey(actionKey);
-      client.sendMessage('Pressed ' + action);
+      if (action === Reaction['🔄']) {
+        client.sendMessage('Giving new frame');
+      } else {
+        const actionMap = {
+          [Reaction['➡️']]: 'RIGHT',
+          [Reaction['⬅️']]: 'LEFT',
+          [Reaction['⬆️']]: 'UP',
+          [Reaction['⬇️']]: 'DOWN',
+          [Reaction['🅰️']]: 'A',
+          [Reaction['🅱']]: 'B',
+          [Reaction['👆']]: 'SELECT',
+          [Reaction['▶️']]: 'START',
+        };
+        const actionKey = actionMap[action];
+        getGameboyInstance().pressKey(actionKey);
+        client.sendMessage('Pressed ' + action);
+      }
     }
     client.sendingMessage = false;
     // Wait a bit so the keys are registered
     if (reactionsLoaded) {
-      setTimeout(postNewFrame, 500);
+      setTimeout(postNewFrame, 1000);
     }
   });
 
