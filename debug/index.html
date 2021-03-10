@@ -43,7 +43,7 @@
       <button onclick="loadState()">Load selected savestate</button>
     </div>
     <script>
-      const url = 'ws://localhost:2020';
+      const url = 'ws://' + window.location.host;
       const ctx = document.getElementById('canvas').getContext('2d');
       const connectedText = document.getElementById('connection');
       const saveStatesList = document.getElementById('savestates');

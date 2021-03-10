@@ -95,7 +95,7 @@ class GameboyClient {
     }
     return this._buffer;
   }
-
+  // TODO only save when savefile changed
   newSaveState(fileName?: string): string {
     let savePath = fileName;
     if (savePath) {
