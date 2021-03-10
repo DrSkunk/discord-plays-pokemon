@@ -47,6 +47,7 @@ async function postFrame() {
   );
   const awaitReactionOptions: AwaitReactionsOptions = {
     time: DemocracyTimeout + Object.values(Reaction).length * 1000,
+    dispose: true,
   };
   if (CurrentGamemode === Gamemode.Anarchy) {
     awaitReactionOptions.max = 1;
@@ -69,8 +70,12 @@ async function postFrame() {
     collectedReactions[reaction.emoji.name].add(user.tag);
   });
 
+  collector.on('remove', (reaction, user) => {
+    Log.info(`Removed ${reaction.emoji.name} from ${user.tag}`);
+    collectedReactions[reaction.emoji.name].delete(user.tag);
+  });
+
   collector.on('end', () => {
-    client.failedAttempts = 0;
     const reactionsCounter: ReactionsCounter = {};
     let maxValue = 0;
     Object.keys(collectedReactions).forEach((reaction) => {
@@ -83,11 +88,11 @@ async function postFrame() {
     const topReactions = Object.keys(reactionsCounter).filter(
       (reaction) => reactionsCounter[reaction] === maxValue
     );
-    if (topReactions.length === 0) {
-      // TODO when X times no choice has been made, don't automatically post a new message
+    if (topReactions.length === 0 || maxValue === 0) {
       client.sendMessage(`No choice was made.`);
       client.failedAttempts++;
     } else {
+      client.failedAttempts = 0;
       const action: Reaction = topReactions[
         Math.floor(Math.random() * topReactions.length)
       ] as Reaction;

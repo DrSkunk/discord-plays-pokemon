@@ -1,4 +1,4 @@
-export const KEY_HOLD_DURATION = 5;
+export const KEY_HOLD_DURATION = 10;
 export const SCREEN_WIDTH = 160;
 export const SCREEN_HEIGHT = 144;
 export const MAX_FAILED_ATTEMPTS = 2;
