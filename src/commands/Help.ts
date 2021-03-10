@@ -7,6 +7,7 @@ const command: Command = {
   names: ['help', 'h'],
   description: 'Display this help information',
   execute,
+  adminOnly: false,
 };
 
 function execute(): void {
@@ -24,6 +25,9 @@ function execute(): void {
         .slice(1)
         .map((name) => `**${Prefix}${name}**`)
         .join(', ');
+    }
+    if (command.adminOnly) {
+      description += '\n **Admin only**';
     }
     exampleEmbed.addField(Prefix + command.names[0], description);
   });

@@ -8,6 +8,7 @@ const command: Command = {
   description:
     'Save the current state to a new file. Optionally supply a filename, otherwise the timestamp will be used',
   execute,
+  adminOnly: true,
 };
 
 function execute(_msg: Message, args: string[]): void {

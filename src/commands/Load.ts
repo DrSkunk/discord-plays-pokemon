@@ -8,6 +8,7 @@ const command: Command = {
   description:
     'Load a savefile. Run without a filename to list all available saves.',
   execute,
+  adminOnly: true,
 };
 
 function execute(_msg: Message, args: string[]): void {

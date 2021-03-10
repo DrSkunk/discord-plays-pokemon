@@ -63,6 +63,7 @@ class DiscordClient {
 
     this._client.on('message', async (message) => {
       if (
+        !message.guild ||
         message.author.bot ||
         message.channel.id !== DiscordChannelId ||
         !message.content.startsWith(Prefix)
@@ -77,7 +78,12 @@ class DiscordClient {
       const command = this._commands.find((c) => c.names.includes(commandName));
 
       if (command) {
-        command.execute(message, args);
+        const isAdmin = message.member?.hasPermission('ADMINISTRATOR');
+        if (command.adminOnly && !isAdmin) {
+          this.sendMessage('This command is for admins only');
+        } else {
+          command.execute(message, args);
+        }
       } else {
         this.sendMessage(
           `Unrecognized command. Type \`${Prefix}help\` for the list of commands.`

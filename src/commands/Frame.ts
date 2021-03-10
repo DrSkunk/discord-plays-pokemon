@@ -18,6 +18,7 @@ const command: Command = {
   names: ['frame', 'f'],
   description: 'Show the latest frame and listen for buttons to press.',
   execute,
+  adminOnly: false,
 };
 
 function execute(): void {
@@ -41,7 +42,7 @@ async function postFrame() {
   }
 
   const message = await client.sendMessage(
-    '.\nWhich button do you want to press?',
+    'Which button do you want to press?',
     attachment
   );
   const awaitReactionOptions: AwaitReactionsOptions = {
