@@ -3,6 +3,7 @@ import Discord, {
   User,
   MessageReaction,
 } from 'discord.js';
+import fs from 'fs';
 import { CurrentGamemode, DemocracyTimeout, Prefix } from '../Config';
 import { MAX_FAILED_ATTEMPTS } from '../Constants';
 import { getDiscordInstance } from '../DiscordClient';
@@ -45,6 +46,13 @@ async function postFrame() {
     'Which button do you want to press?\n🔄 gives a new frame',
     attachment
   );
+
+  try {
+    fs.writeFileSync(`./frames/${new Date().toISOString()}.png`, buffer);
+  } catch (error) {
+    Log.error('Failed to write frame to disk');
+  }
+
   const awaitReactionOptions: AwaitReactionsOptions = {
     time: DemocracyTimeout + Object.values(Reaction).length * 1000,
     dispose: true,

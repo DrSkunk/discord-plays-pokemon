@@ -9,4 +9,5 @@ node_modules/
 dist/
 roms/*.gb
 saves/*.sav
+frames/*.png
 .env

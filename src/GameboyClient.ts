@@ -28,6 +28,8 @@ class GameboyClient {
     this._gameboy.loadRom(rom);
   }
 
+  // TODO daily recap met timelapse
+
   doFrame(): void {
     this._gameboy.doFrame();
     // This is to hold the button for multiple frames to aid button registration
