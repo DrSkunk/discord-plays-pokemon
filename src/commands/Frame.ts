@@ -48,7 +48,10 @@ async function postFrame() {
   );
 
   try {
-    fs.writeFileSync(`./frames/${new Date().toISOString()}.png`, buffer);
+    fs.writeFileSync(
+      `./frames/current/${new Date().toISOString()}.png`,
+      buffer
+    );
   } catch (error) {
     Log.error('Failed to write frame to disk');
   }

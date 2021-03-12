@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import fs from 'fs';
+import cron from 'node-cron';
 import {
   Prefix,
   DiscordToken,
@@ -15,6 +16,7 @@ import {
 } from './Config';
 import { initDiscord, getDiscordInstance } from './DiscordClient';
 import { getGameboyInstance } from './GameboyClient';
+import { makeGif } from './Gifmaker';
 import { Log } from './Log';
 import { SocketServer } from './SocketServer';
 
@@ -68,3 +70,5 @@ if (SaveStateInterval > 0) {
     SaveStateInterval * 1000 * 60
   );
 }
+
+cron.schedule('0 */2 * * *', makeGif);

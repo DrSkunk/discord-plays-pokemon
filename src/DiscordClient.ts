@@ -97,6 +97,11 @@ class DiscordClient {
     text: string | MessageEmbed,
     attachment?: MessageAttachment
   ) {
+    if (!this._channel) {
+      throw new Error(
+        'Could not send message, text channel was not initialised yet.'
+      );
+    }
     if (attachment) {
       return this._channel.send(text, attachment);
     } else {
