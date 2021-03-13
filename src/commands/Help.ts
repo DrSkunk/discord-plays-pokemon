@@ -15,7 +15,7 @@ function execute(): void {
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  const exampleEmbed = new MessageEmbed();
+  const embed = new MessageEmbed();
 
   client.commands.forEach((command) => {
     let description = command.description;
@@ -29,14 +29,14 @@ function execute(): void {
     if (command.adminOnly) {
       description += '\n **Admin only**';
     }
-    exampleEmbed.addField(Prefix + command.names[0], description);
+    embed.addField(Prefix + command.names[0], description);
   });
 
-  exampleEmbed.setFooter(
+  embed.setFooter(
     'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
     'https://i.imgur.com/RPKkHMf.png'
   );
 
-  client.sendMessage(exampleEmbed);
+  client.sendMessage(embed);
 }
 export = command;

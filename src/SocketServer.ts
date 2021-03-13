@@ -8,7 +8,8 @@ import { SocketCommand } from './enums/SocketCommand';
 import { DEFAULT_WEB_PORT } from './Constants';
 
 export class SocketServer {
-  start(): void {
+  private _wss: WebSocket.Server;
+  constructor() {
     const server = http.createServer((req, res) => {
       res.writeHead(200, { 'content-type': 'text/html' });
       fs.createReadStream('./debug/index.html').pipe(res);
@@ -18,9 +19,9 @@ export class SocketServer {
       Log.info('Webserver started on port ' + WebPort);
     });
 
-    const wss = new WebSocket.Server({ server });
+    this._wss = new WebSocket.Server({ server });
 
-    wss.on('connection', (ws) => {
+    this._wss.on('connection', (ws) => {
       ws.on('message', (rawData) => {
         Log.info('Received from socket client:', rawData);
         let data;
@@ -50,22 +51,22 @@ export class SocketServer {
           case SocketCommand.PressKey:
             getGameboyInstance().pressKey(data.key);
             break;
+          case SocketCommand.Memory:
+            getGameboyInstance().getMemory();
+            break;
           default:
             Log.warn('Received invalid socket command', data);
             break;
         }
       });
     });
+  }
 
-    setInterval(() => {
-      if (wss.clients.size != 0) {
-        wss.clients.forEach((client) => {
-          const imageString = getGameboyInstance()
-            .getFrame()
-            .toString('base64');
-          client.send(JSON.stringify({ command: 'frame', imageString }));
-        });
-      }
-    }, 100); // send 10 frames each second
+  sendMessage(imageString: string): void {
+    if (this._wss.clients.size != 0) {
+      this._wss.clients.forEach((client) => {
+        client.send(JSON.stringify({ command: 'frame', imageString }));
+      });
+    }
   }
 }

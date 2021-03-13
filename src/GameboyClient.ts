@@ -1,4 +1,6 @@
 import Gameboy from 'serverboy';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+// const Gameboy = require('../../serverboy.js/src/interface.js');
 import fs from 'fs';
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
@@ -6,6 +8,8 @@ import { Scale } from './Config';
 import { KEY_HOLD_DURATION, SCREEN_HEIGHT, SCREEN_WIDTH } from './Constants';
 import { Log } from './Log';
 import { KeysToPress } from './types/KeysToPress';
+import { MessageEmbed } from 'discord.js';
+import { readStats } from './MemoryReader';
 
 // TODO send audio to voice channel
 class GameboyClient {
@@ -27,8 +31,6 @@ class GameboyClient {
   loadRom(rom: Buffer): void {
     this._gameboy.loadRom(rom);
   }
-
-  // TODO daily recap met timelapse
 
   doFrame(): void {
     this._gameboy.doFrame();
@@ -124,6 +126,16 @@ class GameboyClient {
       .readdirSync('./saves')
       .filter((file) => file.endsWith('.sav'));
     return saveStates;
+  }
+
+  getMemory(): void {
+    const memory = Object.values(this._gameboy.getMemory());
+    const stats = readStats(memory);
+    const embed = new MessageEmbed();
+    // "Technology".split().
+    // [ReverseCharMap.T, ReverseCharMap]
+    // embed.addField('PONCHO', 'PONCHO');
+    // getDiscordInstance()?.sendMessage(embed);
   }
 }
 

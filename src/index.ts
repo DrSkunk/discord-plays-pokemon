@@ -62,7 +62,6 @@ if (!discordClient) {
 discordClient.start();
 
 const socketServer = new SocketServer();
-socketServer.start();
 
 if (SaveStateInterval > 0) {
   setInterval(
@@ -72,3 +71,13 @@ if (SaveStateInterval > 0) {
 }
 
 cron.schedule('0 */2 * * *', makeGif);
+
+setInterval(() => {
+  const imageString = getGameboyInstance().getFrame().toString('base64');
+  socketServer.sendMessage(imageString);
+}, 100); // send 10 frames each second
+
+// TODO web view with discord reactions
+// TODO fix race condition on rapid .frame call
+// TODO map view command
+// TODO pokemon info command

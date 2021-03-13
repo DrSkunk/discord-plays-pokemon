@@ -9,6 +9,7 @@ declare module 'serverboy' {
     getScreen(): number[];
     saveState(): void;
     returnFromState(saveState: number[]): void;
+    getMemory(): Uint8Array;
   }
   export type KEYMAP = {
     [key: string]: number;
