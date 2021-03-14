@@ -8,8 +8,8 @@ import { Scale } from './Config';
 import { KEY_HOLD_DURATION, SCREEN_HEIGHT, SCREEN_WIDTH } from './Constants';
 import { Log } from './Log';
 import { KeysToPress } from './types/KeysToPress';
-import { MessageEmbed } from 'discord.js';
-import { readStats } from './MemoryReader';
+import { MemoryReader } from './MemoryReader';
+import { Stats } from './types/Stats';
 
 // TODO send audio to voice channel
 class GameboyClient {
@@ -128,14 +128,9 @@ class GameboyClient {
     return saveStates;
   }
 
-  getMemory(): void {
-    const memory = Object.values(this._gameboy.getMemory());
-    const stats = readStats(memory);
-    const embed = new MessageEmbed();
-    // "Technology".split().
-    // [ReverseCharMap.T, ReverseCharMap]
-    // embed.addField('PONCHO', 'PONCHO');
-    // getDiscordInstance()?.sendMessage(embed);
+  getStats(): Stats {
+    const memory = new MemoryReader(Object.values(this._gameboy.getMemory()));
+    return memory.readStats();
   }
 }
 

@@ -52,7 +52,7 @@ export class SocketServer {
             getGameboyInstance().pressKey(data.key);
             break;
           case SocketCommand.Memory:
-            getGameboyInstance().getMemory();
+            // getGameboyInstance().getMemory();
             break;
           default:
             Log.warn('Received invalid socket command', data);

@@ -80,4 +80,6 @@ setInterval(() => {
 // TODO web view with discord reactions
 // TODO fix race condition on rapid .frame call
 // TODO map view command
-// TODO pokemon info command
+// TODO faster text
+// TODO show current XP of pokemon
+// TODO show XP until next lvl

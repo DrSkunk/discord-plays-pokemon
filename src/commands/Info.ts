@@ -8,6 +8,7 @@ import {
   Scale,
 } from '../Config';
 import { getDiscordInstance } from '../DiscordClient';
+import { getGameboyInstance } from '../GameboyClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
@@ -22,25 +23,62 @@ function execute(): void {
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  const exampleEmbed = new MessageEmbed();
+  const emulatorEmbed = new MessageEmbed();
 
-  exampleEmbed.addField('Prefix', '`' + Prefix + '`');
-  exampleEmbed.addField(
+  emulatorEmbed.addField('Prefix', '`' + Prefix + '`');
+  emulatorEmbed.addField(
     'Current mode',
     CurrentGamemode.charAt(0) + CurrentGamemode.slice(1).toLowerCase()
   );
-  exampleEmbed.addField('Time to choose', DemocracyTimeout / 1000 + ' seconds');
-  exampleEmbed.addField('Romfile', '`' + Romfile + '`');
-  exampleEmbed.addField('Image scale', 'x' + Scale);
-  exampleEmbed.addField(
+  emulatorEmbed.addField(
+    'Time to choose',
+    DemocracyTimeout / 1000 + ' seconds'
+  );
+  emulatorEmbed.addField('Romfile', '`' + Romfile + '`');
+  emulatorEmbed.addField('Image scale', 'x' + Scale);
+  emulatorEmbed.addField(
     'Autosave interval',
     `Every ${SaveStateInterval} minute(s)`
   );
-  exampleEmbed.setFooter(
+  emulatorEmbed.setFooter(
     'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
     'https://i.imgur.com/RPKkHMf.png'
   );
 
-  client.sendMessage(exampleEmbed);
+  client.sendMessage(emulatorEmbed);
+
+  const stats = getGameboyInstance().getStats();
+
+  const playerEmbed = new MessageEmbed();
+  playerEmbed.setAuthor(stats.playerName);
+  playerEmbed.addField('Money', '§' + stats.money);
+  playerEmbed.addField('Rival', stats.rivalName);
+  client.sendMessage(playerEmbed);
+
+  stats.pokemon.forEach((pokemon) => {
+    const pokemonEmbed = new MessageEmbed();
+    let status = Object.keys(pokemon.status)
+      .filter((status) => pokemon.status[status])
+      .join(', ');
+    if (status === '') {
+      status = 'No status';
+    }
+    pokemonEmbed.setAuthor(pokemon.nickname);
+    pokemonEmbed.setTitle(pokemon.name);
+    pokemonEmbed.setURL(pokemon.url);
+    pokemonEmbed.setThumbnail(pokemon.image);
+    pokemonEmbed.setDescription(pokemon.nickname);
+    pokemonEmbed.addField('HP', `${pokemon.hp}/${pokemon.maxHP}`, true);
+
+    pokemonEmbed.addField('Type', pokemon.types.join(', '), true);
+    pokemonEmbed.addField('Status', status, true);
+    pokemonEmbed.addField('Moves', pokemon.moves.join(', '));
+    pokemonEmbed.addField('Attack', pokemon.attack, true);
+    pokemonEmbed.addField('Defense', pokemon.defense, true);
+    pokemonEmbed.addField('Speed', pokemon.speed, true);
+    pokemonEmbed.addField('Special', pokemon.special, true);
+
+    client.sendMessage(pokemonEmbed);
+  });
 }
 export = command;
