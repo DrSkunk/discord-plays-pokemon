@@ -1,3 +1,4 @@
+import { Move } from './Move';
 import { Status } from './Status';
 
 export type Pokemon = {
@@ -6,7 +7,7 @@ export type Pokemon = {
   nickname: string;
   status: Status;
   types: string[];
-  moves: string[];
+  moves: Move[];
   hp: number;
   maxHP: number;
   level: number;

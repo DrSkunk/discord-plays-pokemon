@@ -51,8 +51,9 @@ function execute(): void {
 
   const playerEmbed = new MessageEmbed();
   playerEmbed.setAuthor(stats.playerName);
-  playerEmbed.addField('Money', '§' + stats.money);
-  playerEmbed.addField('Rival', stats.rivalName);
+  playerEmbed.addField('Money', '§' + stats.money, true);
+  playerEmbed.addField('Rival', stats.rivalName, true);
+  playerEmbed.addField('Time', stats.time, true);
   client.sendMessage(playerEmbed);
 
   stats.pokemon.forEach((pokemon) => {
@@ -67,12 +68,16 @@ function execute(): void {
     pokemonEmbed.setTitle(pokemon.name);
     pokemonEmbed.setURL(pokemon.url);
     pokemonEmbed.setThumbnail(pokemon.image);
-    pokemonEmbed.setDescription(pokemon.nickname);
     pokemonEmbed.addField('HP', `${pokemon.hp}/${pokemon.maxHP}`, true);
 
     pokemonEmbed.addField('Type', pokemon.types.join(', '), true);
     pokemonEmbed.addField('Status', status, true);
-    pokemonEmbed.addField('Moves', pokemon.moves.join(', '));
+    pokemonEmbed.addField(
+      'Moves',
+      pokemon.moves
+        .map(({ name, pp, maxPp }) => `${name} ${pp}/${maxPp}`)
+        .join(', ')
+    );
     pokemonEmbed.addField('Attack', pokemon.attack, true);
     pokemonEmbed.addField('Defense', pokemon.defense, true);
     pokemonEmbed.addField('Speed', pokemon.speed, true);

@@ -5,4 +5,5 @@ export type Stats = {
   rivalName: string;
   pokemon: Pokemon[];
   money: number;
+  time: string;
 };

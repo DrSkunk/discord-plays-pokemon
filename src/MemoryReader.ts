@@ -22,13 +22,26 @@ export class MemoryReader {
     for (let i = 0; i < amountOfPokemon; i++) {
       pokemon.push(this.readPokemon(i));
     }
-    const money = this.readTripleNumber(this._memory[0xd347]);
+
+    const money = this.readMoney();
+    const hours = this.readDoubleNumber(0xda40);
+    const minutes = this.readDoubleNumber(0xda42);
+    const time = `${this.leadingZero(hours)}:${this.leadingZero(minutes)}`;
+
     return {
       playerName,
       rivalName,
       pokemon,
       money,
+      time,
     };
+  }
+
+  private leadingZero(input: number) {
+    if (input > 10) {
+      return input.toString();
+    }
+    return '0' + input.toString();
   }
 
   private readPokemon(pokemonIndex: number): Pokemon {
@@ -36,36 +49,38 @@ export class MemoryReader {
     const baseAddress = 0xd16b + 44 * pokemonIndex;
 
     const name = Names[this._memory[baseAddress] - 1];
-    const image = `https://img.pokemondb.net/sprites/bank/normal/${name.toLowerCase()}.png`;
+    const imageName = name.toLowerCase().replace('♂', '-m').replace('♀', '-f');
+    const image = `https://img.pokemondb.net/sprites/bank/normal/${imageName}.png`;
     const hp = this.readDoubleNumber(baseAddress + 1);
     const status = this.getStatus(this._memory[baseAddress + 4]);
 
     const types = [Types[this._memory[baseAddress + 5]]];
-    const type2 = this._memory[baseAddress + 6];
+    const type2 = Types[this._memory[baseAddress + 6]];
     if (type2 !== types[0]) {
       types.push(type2);
     }
     const moves = [];
-    const move1 = Moves[this._memory[baseAddress + 8] - 2];
-    const move2 = Moves[this._memory[baseAddress + 9] - 2];
-    const move3 = Moves[this._memory[baseAddress + 10] - 2];
-    const move4 = Moves[this._memory[baseAddress + 11] - 2];
+    const move1 = Moves[this._memory[baseAddress + 8] - 1];
+    const move2 = Moves[this._memory[baseAddress + 9] - 1];
+    const move3 = Moves[this._memory[baseAddress + 10] - 1];
+    const move4 = Moves[this._memory[baseAddress + 11] - 1];
     if (move1) {
+      move1.pp = this._memory[baseAddress + 29];
       moves.push(move1);
     }
     if (move2) {
+      move2.pp = this._memory[baseAddress + 30];
       moves.push(move2);
     }
     if (move3) {
+      move3.pp = this._memory[baseAddress + 31];
       moves.push(move3);
     }
     if (move4) {
+      move4.pp = this._memory[baseAddress + 32];
       moves.push(move4);
     }
-    // const PPMove1 = this._memory[baseAddress + 29];
-    // const PPMove2 = this._memory[baseAddress + 30];
-    // const PPMove3 = this._memory[baseAddress + 31];
-    // const PPMove4 = this._memory[baseAddress + 32];
+
     const level = this._memory[baseAddress + 33];
     const maxHP = this.readDoubleNumber(baseAddress + 34);
     const attack = this.readDoubleNumber(baseAddress + 36);
@@ -97,15 +112,28 @@ export class MemoryReader {
   }
 
   private readDoubleNumber(i: number): number {
-    return this._memory[i] * 256 + this._memory[i + 1];
+    return (this._memory[i] << 8) + this._memory[i + 1];
   }
 
-  private readTripleNumber(i: number) {
-    return (
-      this._memory[i] * 256 * 256 +
-      this._memory[i + 1] * 256 +
-      this._memory[i + 2]
-    );
+  private readMoney(): number {
+    // from https://gist.github.com/joaomaia/3892692
+    const bcd2number = function (bcd: number[]) {
+      let n = 0;
+      let m = 1;
+      for (let i = 0; i < bcd.length; i += 1) {
+        n += (bcd[bcd.length - 1 - i] & 0x0f) * m;
+        n += ((bcd[bcd.length - 1 - i] >> 4) & 0x0f) * m * 10;
+        m *= 100;
+      }
+      return n;
+    };
+
+    const money = bcd2number([
+      this._memory[0xd347],
+      this._memory[0xd348],
+      this._memory[0xd349],
+    ]);
+    return money;
   }
 
   private getStatus(statusByte: number): Status {
