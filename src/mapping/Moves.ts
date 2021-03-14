@@ -157,7 +157,7 @@ export const Moves: Move[] = [
   },
   {
     id: 16,
-    name: 'Gust}',
+    name: 'Gust',
     type: 'Normal',
     category: 'Special',
     maxPp: 35,
@@ -277,7 +277,7 @@ export const Moves: Move[] = [
   },
   {
     id: 28,
-    name: 'Sand Attack}',
+    name: 'Sand Attack',
     type: 'Normal',
     category: 'Status',
     maxPp: 15,
