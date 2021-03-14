@@ -14,6 +14,7 @@ export class MemoryReader {
   }
 
   readStats(): Stats {
+    // TODO catch when no data has been set like in the start of the game
     // Mappings from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map#Player
     const amountOfPokemon = this._memory[0xd163];
     const playerName = this.readString(0xd158);
@@ -24,7 +25,8 @@ export class MemoryReader {
     }
 
     const money = this.readMoney();
-    const hours = this.readDoubleNumber(0xda40);
+    const totalHours = this.readDoubleNumber(0xda40);
+    const hours = Math.floor(totalHours % 24);
     const minutes = this.readDoubleNumber(0xda42);
     const time = `${this.leadingZero(hours)}:${this.leadingZero(minutes)}`;
 
