@@ -25,8 +25,12 @@ function execute(_msg: Message, args: string[]): void {
     shortEmbed.addField('Rival', stats.rivalName, true);
     shortEmbed.addField('Time', stats.time, true);
 
-    stats.pokemon.forEach(({ nickname, name, hp, maxHP }) => {
-      shortEmbed.addField(nickname, `${name}\n${hp}/${maxHP}`, true);
+    stats.pokemon.forEach(({ nickname, name, hp, maxHP }, i) => {
+      shortEmbed.addField(
+        `${i + 1} ${nickname}`,
+        `${name}\n${hp}/${maxHP} HP`,
+        true
+      );
     });
     shortEmbed.addField(
       'Detailed info',
@@ -60,7 +64,7 @@ function execute(_msg: Message, args: string[]): void {
       pokemonEmbed.addField(
         'Moves',
         pokemon.moves
-          .map(({ name, pp, maxPp }) => `${name} ${pp}/${maxPp}`)
+          .map(({ name, pp, maxPp }) => `${name} ${pp}/${maxPp} PP`)
           .join(', ')
       );
       pokemonEmbed.addField('Attack', pokemon.attack, true);
