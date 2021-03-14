@@ -30,7 +30,6 @@
       <button onclick="pressKey('B')">B</button>
       <button onclick="pressKey('SELECT')">SELECT</button>
       <button onclick="pressKey('START')">START</button>
-      <button onclick="memory()">MEMORY</button>
     </div>
     <div>
       <button onclick="saveState()">New savestate</button>
@@ -117,9 +116,7 @@
       function loadState() {
         send({ command: 'loadState', name: saveStatesList.value });
       }
-      function memory() {
-        send({ command: 'memory' });
-      }
+
       function send(msg) {
         console.log('sending', msg);
         webSocket.send(JSON.stringify(msg));
