@@ -25,10 +25,10 @@ function execute(_msg: Message, args: string[]): void {
     shortEmbed.addField('Rival', stats.rivalName, true);
     shortEmbed.addField('Time', stats.time, true);
 
-    stats.pokemon.forEach(({ nickname, name, hp, maxHP }, i) => {
+    stats.pokemon.forEach(({ nickname, name, level, hp, maxHP }, i) => {
       shortEmbed.addField(
         `${i + 1} ${nickname}`,
-        `${name}\n${hp}/${maxHP} HP`,
+        `${name} lvl ${level}\n${hp}/${maxHP} HP`,
         true
       );
     });
@@ -54,7 +54,7 @@ function execute(_msg: Message, args: string[]): void {
         status = 'No status';
       }
       pokemonEmbed.setAuthor(pokemon.nickname);
-      pokemonEmbed.setTitle(pokemon.name);
+      pokemonEmbed.setTitle(`${pokemon.name} lvl ${pokemon.level}`);
       pokemonEmbed.setURL(pokemon.url);
       pokemonEmbed.setThumbnail(pokemon.image);
       pokemonEmbed.addField('HP', `${pokemon.hp}/${pokemon.maxHP}`, true);
