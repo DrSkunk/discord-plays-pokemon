@@ -17,6 +17,12 @@ function execute(): void {
   }
   const embed = new MessageEmbed();
 
+  embed.setTitle('Discord plays pokemon');
+  embed.setDescription(
+    'Visit https://github.com/DrSkunk/discord-plays-pokemon for source code'
+  );
+  embed.setURL('https://github.com/DrSkunk/discord-plays-pokemon');
+
   client.commands.forEach((command) => {
     let description = command.description;
     if (command.names.length > 1) {
