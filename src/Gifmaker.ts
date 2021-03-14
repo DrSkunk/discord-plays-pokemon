@@ -8,12 +8,13 @@ import { promisify } from 'util';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from './Constants';
 import { getDiscordInstance } from './DiscordClient';
 import { Log } from './Log';
+import { Scale } from './Config';
 const globPromise = promisify(glob);
 
 export async function makeGif(): Promise<void> {
   console.log('Making GIF');
 
-  const encoder = new GIFEncoder(SCREEN_WIDTH, SCREEN_HEIGHT);
+  const encoder = new GIFEncoder(SCREEN_WIDTH * Scale, SCREEN_HEIGHT * Scale);
 
   const outputFilename = `./frames/summary/${dayjs().format(
     'YYYY-MM-DDTHH:mm'
