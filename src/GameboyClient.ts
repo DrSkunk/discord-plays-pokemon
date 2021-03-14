@@ -132,6 +132,10 @@ class GameboyClient {
     const memory = new MemoryReader(Object.values(this._gameboy.getMemory()));
     return memory.readStats();
   }
+
+  setFastRead(): void {
+    this._gameboy.getMemory()[0xd355] = 0x00;
+  }
 }
 
 const instance = new GameboyClient();

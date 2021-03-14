@@ -51,8 +51,8 @@ export class SocketServer {
           case SocketCommand.PressKey:
             getGameboyInstance().pressKey(data.key);
             break;
-          case SocketCommand.Memory:
-            // getGameboyInstance().getMemory();
+          case SocketCommand.FastText:
+            getGameboyInstance().setFastRead();
             break;
           default:
             Log.warn('Received invalid socket command', data);

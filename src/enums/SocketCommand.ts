@@ -3,5 +3,5 @@ export enum SocketCommand {
   LoadState = 'loadState',
   GetStates = 'getStates',
   PressKey = 'pressKey',
-  Memory = 'memory',
+  FastText = 'fastText',
 }

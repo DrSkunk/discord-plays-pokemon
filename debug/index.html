@@ -30,6 +30,7 @@
       <button onclick="pressKey('B')">B</button>
       <button onclick="pressKey('SELECT')">SELECT</button>
       <button onclick="pressKey('START')">START</button>
+      <button onclick="fastText()">Set text to fastest</button>
     </div>
     <div>
       <button onclick="saveState()">New savestate</button>
@@ -115,6 +116,10 @@
 
       function loadState() {
         send({ command: 'loadState', name: saveStatesList.value });
+      }
+
+      function fastText() {
+        send({ command: 'fastText' });
       }
 
       function send(msg) {
