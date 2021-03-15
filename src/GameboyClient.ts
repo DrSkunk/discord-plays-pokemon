@@ -5,7 +5,12 @@ import fs from 'fs';
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
 import { Scale } from './Config';
-import { KEY_HOLD_DURATION, SCREEN_HEIGHT, SCREEN_WIDTH } from './Constants';
+import {
+  FRAME_WAIT,
+  KEY_HOLD_DURATION,
+  SCREEN_HEIGHT,
+  SCREEN_WIDTH,
+} from './Constants';
 import { Log } from './Log';
 import { KeysToPress } from './types/KeysToPress';
 import { MemoryReader } from './MemoryReader';
@@ -19,6 +24,8 @@ class GameboyClient {
   private _buffer: Buffer;
   private _keysToPress: KeysToPress;
   public static Keymap: KEYMAP;
+  private _keyRepeat: number;
+  private _waitFrameCounter: number;
 
   constructor() {
     this._gameboy = new Gameboy();
@@ -26,6 +33,8 @@ class GameboyClient {
     this._rendering = false;
     this._buffer = Buffer.from([]);
     this._keysToPress = {};
+    this._keyRepeat = 0;
+    this._waitFrameCounter = 0;
   }
 
   loadRom(rom: Buffer): void {
@@ -34,13 +43,29 @@ class GameboyClient {
 
   doFrame(): void {
     this._gameboy.doFrame();
-    // This is to hold the button for multiple frames to aid button registration
-    Object.keys(this._keysToPress).forEach((key) => {
-      if (this._keysToPress[key] - 1 !== 0) {
-        this._keysToPress[key] -= 1;
-        this._gameboy.pressKey(key);
+
+    if (this._waitFrameCounter > 0) {
+      this._waitFrameCounter--;
+    } else {
+      // This is to hold the button for multiple frames to aid button registration
+      Object.keys(this._keysToPress).forEach((key) => {
+        if (this._keysToPress[key] > 0) {
+          this._keysToPress[key]--;
+          this._gameboy.pressKey(key);
+        }
+      });
+      const sum = Object.values(this._keysToPress).reduce(
+        (acc, val) => acc + val,
+        0
+      );
+      if (this._keyRepeat > 0 && sum === 0) {
+        this._waitFrameCounter = FRAME_WAIT;
+        this._keyRepeat--;
+        Object.keys(this._keysToPress).forEach((key) => {
+          this._keysToPress[key] = KEY_HOLD_DURATION;
+        });
       }
-    });
+    }
   }
 
   start(): void {
@@ -54,9 +79,12 @@ class GameboyClient {
     }
   }
 
-  pressKey(key: string): void {
+  pressKey(key: string, repeat = 1): void {
+    for (const member in this._keysToPress) delete this._keysToPress[member];
+
     Log.info(`Pressing ${key}`);
     this._keysToPress[key] = KEY_HOLD_DURATION;
+    this._keyRepeat = repeat - 1;
   }
 
   getFrame(): Buffer {

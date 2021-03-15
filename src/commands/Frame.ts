@@ -8,12 +8,13 @@ import { CurrentGamemode, DemocracyTimeout, Prefix } from '../Config';
 import { MAX_FAILED_ATTEMPTS } from '../Constants';
 import { getDiscordInstance } from '../DiscordClient';
 import { Gamemode } from '../enums/Gamemode';
-import { Reaction } from '../enums/Reaction';
+import { ButtonReaction, ReverseButtonReaction } from '../enums/ButtonReaction';
 import { getGameboyInstance } from '../GameboyClient';
 import { Log } from '../Log';
 import { CollectedReactions } from '../types/CollectedReactions';
 import { Command } from '../types/Command';
 import { ReactionsCounter } from '../types/ReactionsCounter';
+import { RepeatReaction } from '../enums/RepeatReaction';
 
 const command: Command = {
   names: ['frame', 'f'],
@@ -57,15 +58,26 @@ async function postFrame() {
   }
 
   const awaitReactionOptions: AwaitReactionsOptions = {
-    time: DemocracyTimeout + Object.values(Reaction).length * 1000,
+    time:
+      DemocracyTimeout +
+      (Object.values(ButtonReaction).length +
+        Object.values(RepeatReaction).length) *
+        1000,
     dispose: true,
   };
   if (CurrentGamemode === Gamemode.Anarchy) {
     awaitReactionOptions.max = 1;
   }
   const filter = (reaction: MessageReaction, user: User) => {
-    const reactionName = Reaction[reaction.emoji.name as keyof typeof Reaction];
-    return Object.values(Reaction).includes(reactionName) && !user.bot;
+    const buttonReaction =
+      ButtonReaction[reaction.emoji.name as keyof typeof ButtonReaction];
+    const repeatReaction =
+      RepeatReaction[reaction.emoji.name as keyof typeof RepeatReaction];
+    return (
+      (Object.values(ButtonReaction).includes(buttonReaction) ||
+        Object.values(RepeatReaction).includes(repeatReaction)) &&
+      !user.bot
+    );
   };
   const collector = message.createReactionCollector(
     filter,
@@ -87,55 +99,77 @@ async function postFrame() {
   });
 
   collector.on('end', () => {
-    const reactionsCounter: ReactionsCounter = {};
-    let maxValue = 0;
-    Object.keys(collectedReactions).forEach((reaction) => {
-      const { size } = collectedReactions[reaction];
-      reactionsCounter[reaction] = size;
-      if (size > maxValue) {
-        maxValue = size;
-      }
-    });
-    const topReactions = Object.keys(reactionsCounter).filter(
-      (reaction) => reactionsCounter[reaction] === maxValue
+    const actionReactionsCounter: ReactionsCounter = {};
+    let maxActionValue = 0;
+    // Get top action
+    Object.keys(collectedReactions)
+      .filter((reaction) => Object.keys(ButtonReaction).includes(reaction))
+      .forEach((reaction) => {
+        const { size } = collectedReactions[reaction];
+        actionReactionsCounter[reaction] = size;
+        if (size > maxActionValue) {
+          maxActionValue = size;
+        }
+      });
+    const topReactions = Object.keys(actionReactionsCounter).filter(
+      (reaction) => actionReactionsCounter[reaction] === maxActionValue
     );
-    if (topReactions.length === 0 || maxValue === 0) {
+
+    // See if it's a repeated action, if so how much
+    const repeatReactionsCounter: ReactionsCounter = {};
+    let maxRepeatValue = 0;
+    Object.keys(collectedReactions)
+      .filter((reaction) => Object.keys(RepeatReaction).includes(reaction))
+      .forEach((reaction) => {
+        const { size } = collectedReactions[reaction];
+        repeatReactionsCounter[reaction] = size;
+        if (size > maxRepeatValue) {
+          maxRepeatValue = size;
+        }
+      });
+    const topRepeat = Object.keys(repeatReactionsCounter).filter(
+      (reaction) => repeatReactionsCounter[reaction] === maxRepeatValue
+    );
+
+    if (topReactions.length === 0 || maxActionValue === 0) {
       client.sendMessage(`No choice was made.`);
       client.failedAttempts++;
     } else {
       client.failedAttempts = 0;
-      const action: Reaction = topReactions[
+      const action: ReverseButtonReaction = topReactions[
         Math.floor(Math.random() * topReactions.length)
-      ] as Reaction;
-      if (action === Reaction['🔄']) {
+      ] as ReverseButtonReaction;
+      if (action === ReverseButtonReaction['🔄']) {
         client.sendMessage('Giving new frame');
       } else {
-        const actionMap = {
-          [Reaction['➡️']]: 'RIGHT',
-          [Reaction['⬅️']]: 'LEFT',
-          [Reaction['⬆️']]: 'UP',
-          [Reaction['⬇️']]: 'DOWN',
-          [Reaction['🅰️']]: 'A',
-          [Reaction['🅱']]: 'B',
-          [Reaction['👆']]: 'SELECT',
-          [Reaction['▶️']]: 'START',
-        };
-        const actionKey = actionMap[action];
-        getGameboyInstance().pressKey(actionKey);
-        client.sendMessage('Pressed ' + action);
+        let repeat = 1;
+        if (topRepeat.length !== 0) {
+          client.failedAttempts = 0;
+          const repeatString =
+            topRepeat[Math.floor(Math.random() * topRepeat.length)];
+          repeat = RepeatReaction[repeatString];
+        }
+        const actionKey = ButtonReaction[action];
+
+        getGameboyInstance().pressKey(actionKey, repeat);
+        client.sendMessage(`Pressed ${action} ${repeat} time(s)`);
       }
     }
     client.sendingMessage = false;
     // Wait a bit so the keys are registered
     if (reactionsLoaded) {
-      setTimeout(postNewFrame, 2000);
+      setTimeout(postNewFrame, 5000);
     }
   });
 
+  const emojis = Object.keys(ButtonReaction);
+  if (CurrentGamemode === Gamemode.Democracy) {
+    emojis.push(...Object.keys(RepeatReaction));
+  }
+
   client.sendingMessage = true;
-  const reactionsPromise = Object.values(Reaction).map((reaction) =>
-    message.react(reaction)
-  );
+  const reactionsPromise = emojis.map((reaction) => message.react(reaction));
+
   Promise.all(reactionsPromise).then(() => {
     reactionsLoaded = true;
     if (!client.sendingMessage) {
