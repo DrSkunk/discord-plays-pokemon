@@ -6,6 +6,7 @@ import { Types } from './mapping/Types';
 import { Status } from './types/Status';
 import { Stats } from './types/Stats';
 import { Pokemon } from './types/Pokemon';
+import { Gym } from './types/Gym';
 
 export class MemoryReader {
   private _memory: number[];
@@ -29,6 +30,7 @@ export class MemoryReader {
     const hours = Math.floor(totalHours % 24);
     const minutes = this.readDoubleNumber(0xda42);
     const time = `${this.leadingZero(hours)}:${this.leadingZero(minutes)}`;
+    const gyms = this.readGyms();
 
     return {
       playerName,
@@ -36,6 +38,7 @@ export class MemoryReader {
       pokemon,
       money,
       time,
+      gyms,
     };
   }
 
@@ -111,6 +114,48 @@ export class MemoryReader {
       special,
       url,
     };
+  }
+
+  private readGyms(): Gym[] {
+    const gymMemory = this._memory[0xd356];
+    function testBit(mask: number) {
+      return (gymMemory & mask) !== 0;
+    }
+    const gyms: Gym[] = [
+      {
+        name: 'Brock',
+        done: testBit(1),
+      },
+      {
+        name: 'Misty',
+        done: testBit(1 << 1),
+      },
+      {
+        name: 'Lt. Surge',
+        done: testBit(1 << 2),
+      },
+      {
+        name: 'Erika',
+        done: testBit(1 << 3),
+      },
+      {
+        name: 'Koga',
+        done: testBit(1 << 4),
+      },
+      {
+        name: 'Sabrina',
+        done: testBit(1 << 5),
+      },
+      {
+        name: 'Blaine',
+        done: testBit(1 << 6),
+      },
+      {
+        name: 'Giovanni',
+        done: testBit(1 << 7),
+      },
+    ];
+    return gyms;
   }
 
   private readDoubleNumber(i: number): number {

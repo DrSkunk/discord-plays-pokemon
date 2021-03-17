@@ -36,6 +36,10 @@ function execute(_msg: Message, args: string[]): void {
       'Detailed info',
       `Run \`${Prefix}info 1\` to view info about the first pokémon, \`${Prefix}info 2\` for the second and so on.`
     );
+    const badges = stats.gyms
+      .map(({ name, done }) => `${name}: ${done ? 'Done' : 'Not done'}`)
+      .join(', ');
+    shortEmbed.addField('Badges', badges);
 
     client.sendMessage(shortEmbed);
   } else {

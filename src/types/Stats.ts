@@ -1,3 +1,4 @@
+import { Gym } from './Gym';
 import { Pokemon } from './Pokemon';
 
 export type Stats = {
@@ -6,4 +7,5 @@ export type Stats = {
   pokemon: Pokemon[];
   money: number;
   time: string;
+  gyms: Gym[];
 };
