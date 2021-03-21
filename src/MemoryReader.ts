@@ -32,7 +32,7 @@ export class MemoryReader {
     const minutes = this.readDoubleNumber(0xda42);
     const time = `${this.leadingZero(hours)}:${this.leadingZero(minutes)}`;
     const gyms = this.readGyms();
-    const location = Locations[this._memory[0xd35e]];
+    const location = Locations[this._memory[0xd35e]].name;
 
     return {
       playerName,
