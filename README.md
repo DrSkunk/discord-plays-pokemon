@@ -8,6 +8,10 @@ Server application made in typescript that allows a discord server to play a gam
 
 ![Discord preview](preview.png)
 
+The `info` command also has detailed info read from the emulator's RAM like Pokémon stats.
+
+![Pokemon info](stats.png)
+
 It also automatically creates summary gifs every two hours.  
 ![Summary example](summary-example.gif)
 
