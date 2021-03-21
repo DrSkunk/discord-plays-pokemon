@@ -6,14 +6,14 @@
 
 Server application made in typescript that allows a discord server to play a gameboy game using only a text channel. The bot posts a frame of the game and the players use the reactions to vote for a button to be pressed.
 
-![Discord preview](preview.png)
+![Discord preview](imgs/preview.png)
 
 The `info` command also has detailed info read from the emulator's RAM like Pokémon stats.
 
-![Pokemon info](stats.png)
+![Pokemon info](imgs/stats.png)
 
 It also automatically creates summary gifs every two hours.  
-![Summary example](summary-example.gif)
+![Summary example](imgs/summary-example.gif)
 
 ## Installation
 
