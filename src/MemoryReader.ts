@@ -7,6 +7,7 @@ import { Status } from './types/Status';
 import { Stats } from './types/Stats';
 import { Pokemon } from './types/Pokemon';
 import { Gym } from './types/Gym';
+import { Locations } from './mapping/Locations';
 
 export class MemoryReader {
   private _memory: number[];
@@ -31,6 +32,7 @@ export class MemoryReader {
     const minutes = this.readDoubleNumber(0xda42);
     const time = `${this.leadingZero(hours)}:${this.leadingZero(minutes)}`;
     const gyms = this.readGyms();
+    const location = Locations[this._memory[0xd35e]];
 
     return {
       playerName,
@@ -39,6 +41,7 @@ export class MemoryReader {
       money,
       time,
       gyms,
+      location,
     };
   }
 

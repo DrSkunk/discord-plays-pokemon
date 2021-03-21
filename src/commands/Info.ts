@@ -24,6 +24,7 @@ function execute(_msg: Message, args: string[]): void {
     shortEmbed.addField('Money', '§' + stats.money, true);
     shortEmbed.addField('Rival', stats.rivalName, true);
     shortEmbed.addField('Time', stats.time, true);
+    shortEmbed.addField('Location', stats.location, true);
 
     stats.pokemon.forEach(({ nickname, name, level, hp, maxHP }, i) => {
       shortEmbed.addField(

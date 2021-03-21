@@ -8,4 +8,5 @@ export type Stats = {
   money: number;
   time: string;
   gyms: Gym[];
+  location: string;
 };
