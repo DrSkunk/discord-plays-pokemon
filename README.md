@@ -6,6 +6,11 @@
 
 Server application made in typescript that allows a discord server to play a gameboy game using only a text channel. The bot posts a frame of the game and the players use the reactions to vote for a button to be pressed.
 
+![Discord preview](preview.png)
+
+It also automatically creates summary gifs every two hours.  
+![Summary example](summary-example.gif)
+
 ## Installation
 
 This requires [NodeJS](https://nodejs.org/en/) to be installed.
