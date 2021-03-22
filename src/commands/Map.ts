@@ -22,14 +22,17 @@ async function execute(): Promise<void> {
 
   const canvas = Canvas.createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
   const ctx = canvas.getContext('2d');
-  const background = await Canvas.loadImage('./src/imgs/map_bg.png');
-  const ash = await Canvas.loadImage('./src/imgs/ash.png');
+  const background = await Canvas.loadImage('./src/static/map_bg.png');
+  const ash = await Canvas.loadImage('./src/static/ash.png');
 
   ctx.drawImage(background, 0, 0);
   ctx.drawImage(ash, location.location.x, location.location.y);
-  ctx.font = '8px sans-serif';
+  Canvas.registerFont('./src/static/pokemon_pixel_font.ttf', {
+    family: 'pokemon',
+  });
+  ctx.font = '12px pokemon';
   ctx.fillStyle = '#000000';
-  ctx.fillText(location.location.name, 9, 8);
+  ctx.fillText(location.location.name.toUpperCase(), 9, 8);
   const attachment = new MessageAttachment(canvas.toBuffer(), 'map.png');
   client.sendMessage(`Current location: **${location.name}**`, attachment);
 }

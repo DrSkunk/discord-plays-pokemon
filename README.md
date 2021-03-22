@@ -47,3 +47,7 @@ You can find your Guild ID and Text channel ID by enabling developer mode on you
 When using _anarchy mode_, the first reaction will be used to press a button, others will be ignored. The bot will then reply after pressing it with a new prompt.
 
 When using _democracy mode_, the bot will post a screenshot and wait for a set amount. After that the move with the most votes will be executed. When it's a draw, one of the top votes will be executed randomly.
+
+## Credits
+
+Pokémon pixel font by SpyrSteak on Fontstruct: https://fontstruct.com/fontstructions/show/299827/pokemon_pixel_font
