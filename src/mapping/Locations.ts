@@ -242,7 +242,7 @@ export const Locations: {
   },
   0x3b: {
     name: 'Mt. Moon (Route 3 entrance)',
-    location: MapLocations.Route3,
+    location: MapLocations.MtMoon,
   },
   0x3c: {
     name: 'Mt. Moon',
