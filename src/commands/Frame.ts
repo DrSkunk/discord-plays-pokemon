@@ -3,7 +3,7 @@ import Discord, {
   User,
   MessageReaction,
 } from 'discord.js';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { CurrentGamemode, DemocracyTimeout, Prefix } from '../Config';
 import { MAX_FAILED_ATTEMPTS } from '../Constants';
 import { getDiscordInstance } from '../DiscordClient';
@@ -49,7 +49,7 @@ async function postFrame() {
   );
 
   try {
-    fs.writeFileSync(
+    await fs.writeFile(
       `./frames/current/${new Date().toISOString()}.png`,
       buffer
     );

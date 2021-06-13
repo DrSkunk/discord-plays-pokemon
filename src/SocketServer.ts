@@ -22,7 +22,7 @@ export class SocketServer {
     this._wss = new WebSocket.Server({ server });
 
     this._wss.on('connection', (ws) => {
-      ws.on('message', (rawData) => {
+      ws.on('message', async (rawData) => {
         Log.info('Received from socket client:', rawData);
         let data;
         try {
@@ -45,7 +45,7 @@ export class SocketServer {
 
             break;
           case SocketCommand.GetStates:
-            const saveStates = getGameboyInstance().getSaveStates();
+            const saveStates = await getGameboyInstance().getSaveStates();
             ws.send(JSON.stringify({ command: 'saveStates', saveStates }));
             break;
           case SocketCommand.PressKey:

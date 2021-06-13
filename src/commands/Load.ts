@@ -11,12 +11,12 @@ const command: Command = {
   adminOnly: true,
 };
 
-function execute(_msg: Message, args: string[]): void {
+async function execute(_msg: Message, args: string[]): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  const saveStates = getGameboyInstance().getSaveStates();
+  const saveStates = await getGameboyInstance().getSaveStates();
   if (args.length === 0) {
     const reply = `\`\`\`\
 Available saves:

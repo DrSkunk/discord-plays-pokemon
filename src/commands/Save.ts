@@ -11,17 +11,17 @@ const command: Command = {
   adminOnly: true,
 };
 
-function execute(_msg: Message, args: string[]): void {
+async function execute(_msg: Message, args: string[]): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
   }
   let savedFileLocation: string;
   if (args.length === 0) {
-    savedFileLocation = getGameboyInstance().newSaveState();
+    savedFileLocation = await getGameboyInstance().newSaveState();
   } else {
     const filename = args.join('_');
-    savedFileLocation = getGameboyInstance().newSaveState(filename);
+    savedFileLocation = await getGameboyInstance().newSaveState(filename);
   }
   client.sendMessage(`Saved to \`${savedFileLocation}\``);
 }

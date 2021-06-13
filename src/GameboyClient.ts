@@ -1,7 +1,7 @@
 import Gameboy from 'serverboy';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const Gameboy = require('../../serverboy.js/src/interface.js');
-import fs from 'fs';
+import fs from 'fs/promises';
 import { KEYMAP } from 'serverboy';
 import { PNG } from 'pngjs';
 import { Scale } from './Config';
@@ -128,7 +128,7 @@ class GameboyClient {
     return this._buffer;
   }
   // TODO only save when savefile changed
-  newSaveState(fileName?: string): string {
+  async newSaveState(fileName?: string): Promise<string> {
     let savePath = fileName;
     if (savePath) {
       savePath.replace(/[^\w\s]/gi, '');
@@ -137,22 +137,22 @@ class GameboyClient {
     }
     savePath = './saves/' + savePath + '.sav';
     const saveState = this._gameboy.saveState();
-    fs.writeFileSync(savePath, JSON.stringify(saveState));
+    await fs.writeFile(savePath, JSON.stringify(saveState));
     Log.info('Saved new savefile to ', savePath);
     return savePath;
   }
 
-  loadSaveState(fileName: string) {
+  async loadSaveState(fileName: string) {
     const saveState = JSON.parse(
-      fs.readFileSync('./saves/' + fileName).toString()
+      await fs.readFile('./saves/' + fileName).toString()
     );
     this._gameboy.returnFromState(saveState);
   }
 
-  getSaveStates(): string[] {
-    const saveStates = fs
-      .readdirSync('./saves')
-      .filter((file) => file.endsWith('.sav'));
+  async getSaveStates(): Promise<string[]> {
+    const saveStates = (await fs.readdir('./saves')).filter((file) =>
+      file.endsWith('.sav')
+    );
     return saveStates;
   }
 
