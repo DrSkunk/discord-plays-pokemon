@@ -77,6 +77,17 @@ setInterval(() => {
   socketServer.sendMessage(imageString);
 }, 100); // send 10 frames each second
 
+async function loadSaveState() {
+  const saveStates = await getGameboyInstance().getSaveStates();
+  if (saveStates.length === 0) {
+    Log.info('No savestates yet, not automatically loading latest save.');
+  } else {
+    Log.info(`Loading latest save ${saveStates[0]}`);
+    getGameboyInstance().loadSaveState(saveStates[0]);
+  }
+}
+loadSaveState();
+
 // TODO web view with discord reactions
 // TODO fix race condition on rapid .frame call
 // TODO map view command

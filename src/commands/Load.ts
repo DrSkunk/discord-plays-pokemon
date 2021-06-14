@@ -17,6 +17,7 @@ async function execute(_msg: Message, args: string[]): Promise<void> {
     throw new Error('Discord did not initialize');
   }
   const saveStates = await getGameboyInstance().getSaveStates();
+  // TODO split into multiple messages if max message length is reached
   if (args.length === 0) {
     const reply = `\`\`\`\
 Available saves:

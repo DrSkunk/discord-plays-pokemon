@@ -142,18 +142,26 @@ class GameboyClient {
     return savePath;
   }
 
-  async loadSaveState(fileName: string) {
+  async loadSaveState(fileName: string): Promise<void> {
     const saveState = JSON.parse(
-      await fs.readFile('./saves/' + fileName).toString()
+      await fs.readFile('./saves/' + fileName, { encoding: 'utf-8' })
     );
     this._gameboy.returnFromState(saveState);
   }
 
   async getSaveStates(): Promise<string[]> {
-    const saveStates = (await fs.readdir('./saves')).filter((file) =>
-      file.endsWith('.sav')
-    );
-    return saveStates;
+    const dir = './saves/';
+    const saveStatesPromise = (await fs.readdir(dir))
+      .filter((filename) => filename.endsWith('.sav'))
+      .map(async (filename) => ({
+        filename,
+        time: (await fs.stat(dir + filename)).mtime.getTime(),
+      }));
+    const saveStates = await Promise.all(saveStatesPromise);
+
+    saveStates.sort((a, b) => b.time - a.time);
+
+    return saveStates.map(({ filename }) => filename);
   }
 
   getStats(): Stats {
