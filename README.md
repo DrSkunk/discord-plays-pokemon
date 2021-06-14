@@ -54,4 +54,4 @@ When using _democracy mode_, the bot will post a screenshot and wait for a set a
 
 ## Credits
 
-Pokémon pixel font by SpyrSteak on Fontstruct: https://fontstruct.com/fontstructions/show/299827/pokemon_pixel_font
+Pokémon pixel font by SpyroSteak on Fontstruct: https://fontstruct.com/fontstructions/show/299827/pokemon_pixel_font
