@@ -2,6 +2,7 @@ import Discord, {
   AwaitReactionsOptions,
   User,
   MessageReaction,
+  AttachmentBuilder,
 } from 'discord.js';
 import fs from 'fs/promises';
 import { CurrentGamemode, DemocracyTimeout, Prefix } from '../Config';
@@ -37,7 +38,7 @@ function execute(): void {
 async function postFrame() {
   let reactionsLoaded = false;
   const buffer = getGameboyInstance().getFrame();
-  const attachment = new Discord.MessageAttachment(buffer, 'frame.png');
+  const attachment = new AttachmentBuilder(buffer, { name: 'frame.png' });
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord client not initialised');
@@ -79,23 +80,23 @@ async function postFrame() {
       !user.bot
     );
   };
-  const collector = message.createReactionCollector(
+  const collector = message.createReactionCollector({
     filter,
-    awaitReactionOptions
-  );
+    ...awaitReactionOptions,
+  });
   const collectedReactions: CollectedReactions = {};
 
   collector.on('collect', (reaction, user) => {
     Log.info(`Collected ${reaction.emoji.name} from ${user.tag}`);
-    if (!collectedReactions.hasOwnProperty(reaction.emoji.name)) {
-      collectedReactions[reaction.emoji.name] = new Set();
+    if (!collectedReactions.hasOwnProperty(reaction.emoji.name!)) {
+      collectedReactions[reaction.emoji.name!] = new Set();
     }
-    collectedReactions[reaction.emoji.name].add(user.tag);
+    collectedReactions[reaction.emoji.name!].add(user.tag);
   });
 
   collector.on('remove', (reaction, user) => {
     Log.info(`Removed ${reaction.emoji.name} from ${user.tag}`);
-    collectedReactions[reaction.emoji.name].delete(user.tag);
+    collectedReactions[reaction.emoji.name!].delete(user.tag);
   });
 
   collector.on('end', () => {

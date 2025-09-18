@@ -1,7 +1,9 @@
 import Discord, {
-  MessageAttachment,
-  MessageEmbed,
+  AttachmentBuilder,
+  EmbedBuilder,
   TextChannel,
+  GatewayIntentBits,
+  ActivityType,
 } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
@@ -28,7 +30,14 @@ class DiscordClient {
 
   constructor(token: string) {
     this._token = token;
-    this._client = new Discord.Client();
+    this._client = new Discord.Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMessageReactions,
+      ],
+    });
     this._channel = this._client.channels.cache.get(
       DiscordChannelId
     ) as TextChannel;
@@ -44,12 +53,10 @@ class DiscordClient {
         DiscordChannelId
       ) as TextChannel;
       if (this._client.user) {
-        this._client.user
-          .setActivity(`${Prefix}help`, { type: 'LISTENING' })
-          .then((presence) =>
-            Log.info(`Activity set to ${presence.activities[0].name}`)
-          )
-          .catch(Log.error);
+        this._client.user.setActivity(`${Prefix}help`, { 
+          type: ActivityType.Listening 
+        });
+        Log.info(`Activity set to ${Prefix}help`);
       }
       const commandFiles = await globPromise(`${__dirname}/commands/*.{js,ts}`);
 
@@ -94,8 +101,8 @@ class DiscordClient {
   }
 
   async sendMessage(
-    text: string | MessageEmbed,
-    attachment?: MessageAttachment
+    text: string | EmbedBuilder,
+    attachment?: AttachmentBuilder
   ) {
     if (!this._channel) {
       throw new Error(
@@ -103,9 +110,16 @@ class DiscordClient {
       );
     }
     if (attachment) {
-      return this._channel.send(text, attachment);
+      return this._channel.send({
+        content: typeof text === 'string' ? text : undefined,
+        embeds: typeof text === 'string' ? undefined : [text],
+        files: [attachment],
+      });
     } else {
-      return this._channel.send(text);
+      return this._channel.send({
+        content: typeof text === 'string' ? text : undefined,
+        embeds: typeof text === 'string' ? undefined : [text],
+      });
     }
   }
 }

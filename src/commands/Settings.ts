@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import {
   CurrentGamemode,
   DemocracyTimeout,
@@ -22,27 +22,29 @@ function execute(): void {
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  const emulatorEmbed = new MessageEmbed();
+  const emulatorEmbed = new EmbedBuilder();
 
-  emulatorEmbed.addField('Prefix', '`' + Prefix + '`');
-  emulatorEmbed.addField(
-    'Current mode',
-    CurrentGamemode.charAt(0) + CurrentGamemode.slice(1).toLowerCase()
+  emulatorEmbed.addFields(
+    { name: 'Prefix', value: '`' + Prefix + '`' },
+    {
+      name: 'Current mode',
+      value: CurrentGamemode.charAt(0) + CurrentGamemode.slice(1).toLowerCase(),
+    },
+    {
+      name: 'Time to choose',
+      value: DemocracyTimeout / 1000 + ' seconds',
+    },
+    { name: 'Romfile', value: '`' + Romfile + '`' },
+    { name: 'Image scale', value: 'x' + Scale },
+    {
+      name: 'Autosave interval',
+      value: `Every ${SaveStateInterval} minute(s)`,
+    }
   );
-  emulatorEmbed.addField(
-    'Time to choose',
-    DemocracyTimeout / 1000 + ' seconds'
-  );
-  emulatorEmbed.addField('Romfile', '`' + Romfile + '`');
-  emulatorEmbed.addField('Image scale', 'x' + Scale);
-  emulatorEmbed.addField(
-    'Autosave interval',
-    `Every ${SaveStateInterval} minute(s)`
-  );
-  emulatorEmbed.setFooter(
-    'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
-    'https://i.imgur.com/RPKkHMf.png'
-  );
+  emulatorEmbed.setFooter({
+    text: 'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
+    iconURL: 'https://i.imgur.com/RPKkHMf.png',
+  });
 
   client.sendMessage(emulatorEmbed);
 }

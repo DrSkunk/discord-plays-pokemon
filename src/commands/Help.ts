@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { Prefix } from '../Config';
 import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
@@ -15,7 +15,7 @@ function execute(): void {
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  const embed = new MessageEmbed();
+  const embed = new EmbedBuilder();
 
   embed.setTitle('Discord plays pokemon');
   embed.setDescription(
@@ -35,13 +35,16 @@ function execute(): void {
     if (command.adminOnly) {
       description += '\n **Admin only**';
     }
-    embed.addField(Prefix + command.names[0], description);
+    embed.addFields({
+      name: Prefix + command.names[0],
+      value: description,
+    });
   });
 
-  embed.setFooter(
-    'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
-    'https://i.imgur.com/RPKkHMf.png'
-  );
+  embed.setFooter({
+    text: 'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
+    iconURL: 'https://i.imgur.com/RPKkHMf.png',
+  });
 
   client.sendMessage(embed);
 }

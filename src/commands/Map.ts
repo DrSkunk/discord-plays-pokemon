@@ -1,5 +1,5 @@
 import Canvas from 'canvas';
-import { MessageAttachment } from 'discord.js';
+import { AttachmentBuilder } from 'discord.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../Constants';
 import { getDiscordInstance } from '../DiscordClient';
 import { getGameboyInstance } from '../GameboyClient';
@@ -33,7 +33,7 @@ async function execute(): Promise<void> {
   ctx.font = '12px pokemon';
   ctx.fillStyle = '#000000';
   ctx.fillText(location.location.name.toUpperCase(), 9, 8);
-  const attachment = new MessageAttachment(canvas.toBuffer(), 'map.png');
+  const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'map.png' });
   client.sendMessage(`Current location: **${location.name}**`, attachment);
 }
 export = command;
