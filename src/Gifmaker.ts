@@ -47,7 +47,9 @@ async function postGif(filePath: string, frameCounter: number): Promise<void> {
     throw new Error('Discord client not initialised');
   }
   const buffer = await fs.readFile(filePath);
-  const attachment = new Discord.AttachmentBuilder(buffer, { name: 'summary.gif' });
+  const attachment = new Discord.AttachmentBuilder(buffer, {
+    name: 'summary.gif',
+  });
   client.sendMessage(
     `Summary of the last two hours. ${frameCounter} moves were made.`,
     attachment

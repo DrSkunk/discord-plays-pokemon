@@ -4,6 +4,7 @@ import Discord, {
   TextChannel,
   GatewayIntentBits,
   ActivityType,
+  Interaction,
 } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
@@ -23,6 +24,7 @@ class DiscordClient {
   private _commands: Command[];
   public sendingMessage: boolean;
   public failedAttempts: number;
+  public currentFrameMessage: Discord.Message | null;
 
   get commands() {
     return this._commands;
@@ -44,6 +46,7 @@ class DiscordClient {
     this._commands = [];
     this.sendingMessage = false;
     this.failedAttempts = 0;
+    this.currentFrameMessage = null;
   }
 
   start() {
@@ -53,8 +56,8 @@ class DiscordClient {
         DiscordChannelId
       ) as TextChannel;
       if (this._client.user) {
-        this._client.user.setActivity(`${Prefix}help`, { 
-          type: ActivityType.Listening 
+        this._client.user.setActivity(`${Prefix}help`, {
+          type: ActivityType.Listening,
         });
         Log.info(`Activity set to ${Prefix}help`);
       }
@@ -65,6 +68,16 @@ class DiscordClient {
         const command = require(file) as Command;
         Log.info('Added command', command.names[0]);
         this._commands.push(command);
+      }
+    });
+
+    this._client.on('interactionCreate', async (interaction: Interaction) => {
+      if (!interaction.isButton()) return;
+
+      // Handle button interactions from the frame command
+      if (interaction.customId.startsWith('pokemon_')) {
+        // This will be handled by the Frame command's interaction handler
+        return;
       }
     });
 
@@ -119,6 +132,55 @@ class DiscordClient {
       return this._channel.send({
         content: typeof text === 'string' ? text : undefined,
         embeds: typeof text === 'string' ? undefined : [text],
+      });
+    }
+  }
+
+  async updateMessage(
+    message: Discord.Message,
+    text: string | EmbedBuilder,
+    attachment?: AttachmentBuilder,
+    components?: Discord.ActionRowBuilder<Discord.ButtonBuilder>[]
+  ) {
+    if (attachment) {
+      return message.edit({
+        content: typeof text === 'string' ? text : undefined,
+        embeds: typeof text === 'string' ? undefined : [text],
+        files: [attachment],
+        components: components || [],
+      });
+    } else {
+      return message.edit({
+        content: typeof text === 'string' ? text : undefined,
+        embeds: typeof text === 'string' ? undefined : [text],
+        components: components || [],
+      });
+    }
+  }
+
+  async sendMessageWithComponents(
+    text: string | EmbedBuilder,
+    attachment?: AttachmentBuilder,
+    components?: Discord.ActionRowBuilder<Discord.ButtonBuilder>[]
+  ) {
+    if (!this._channel) {
+      throw new Error(
+        'Could not send message, text channel was not initialised yet.'
+      );
+    }
+
+    if (attachment) {
+      return this._channel.send({
+        content: typeof text === 'string' ? text : undefined,
+        embeds: typeof text === 'string' ? undefined : [text],
+        files: [attachment],
+        components: components || [],
+      });
+    } else {
+      return this._channel.send({
+        content: typeof text === 'string' ? text : undefined,
+        embeds: typeof text === 'string' ? undefined : [text],
+        components: components || [],
       });
     }
   }

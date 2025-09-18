@@ -76,7 +76,7 @@ function execute(_msg: Message, args: string[]): void {
           name: 'Moves',
           value: pokemon.moves
             .map(({ name, pp, maxPp }) => `${name} ${pp}/${maxPp} PP`)
-            .join(', ')
+            .join(', '),
         },
         { name: 'Attack', value: pokemon.attack.toString(), inline: true },
         { name: 'Defense', value: pokemon.defense.toString(), inline: true },

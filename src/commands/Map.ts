@@ -33,7 +33,9 @@ async function execute(): Promise<void> {
   ctx.font = '12px pokemon';
   ctx.fillStyle = '#000000';
   ctx.fillText(location.location.name.toUpperCase(), 9, 8);
-  const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'map.png' });
+  const attachment = new AttachmentBuilder(canvas.toBuffer(), {
+    name: 'map.png',
+  });
   client.sendMessage(`Current location: **${location.name}**`, attachment);
 }
 export = command;
