@@ -37,7 +37,6 @@ class DiscordClient {
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMessageReactions,
       ],
     });
     this._channel = this._client.channels.cache.get(
