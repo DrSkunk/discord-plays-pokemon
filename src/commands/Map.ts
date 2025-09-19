@@ -1,18 +1,24 @@
 import Canvas from 'canvas';
-import { MessageAttachment } from 'discord.js';
+import {
+  AttachmentBuilder,
+  SlashCommandBuilder,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../Constants';
 import { getDiscordInstance } from '../DiscordClient';
 import { getGameboyInstance } from '../GameboyClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  names: ['map', 'm'],
-  description: 'Show the current position on the map of Kanto',
+  data: new SlashCommandBuilder()
+    .setName('map')
+    .setDescription('Show the current position on the map of Kanto'),
   execute,
-  adminOnly: false,
 };
 
-async function execute(): Promise<void> {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
@@ -33,7 +39,13 @@ async function execute(): Promise<void> {
   ctx.font = '12px pokemon';
   ctx.fillStyle = '#000000';
   ctx.fillText(location.location.name.toUpperCase(), 9, 8);
-  const attachment = new MessageAttachment(canvas.toBuffer(), 'map.png');
-  client.sendMessage(`Current location: **${location.name}**`, attachment);
+  const attachment = new AttachmentBuilder(canvas.toBuffer(), {
+    name: 'map.png',
+  });
+
+  await interaction.reply({
+    content: `Current location: **${location.name}**`,
+    files: [attachment],
+  });
 }
 export = command;

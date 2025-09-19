@@ -1,8 +1,11 @@
-import { MessageEmbed } from 'discord.js';
+import {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import {
   CurrentGamemode,
   DemocracyTimeout,
-  Prefix,
   Romfile,
   SaveStateInterval,
   Scale,
@@ -11,39 +14,42 @@ import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  names: ['settings'],
-  description: 'Show the current loaded settings.',
+  data: new SlashCommandBuilder()
+    .setName('settings')
+    .setDescription('Show the current loaded settings'),
   execute,
-  adminOnly: false,
 };
 
-function execute(): void {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  const emulatorEmbed = new MessageEmbed();
+  const emulatorEmbed = new EmbedBuilder();
 
-  emulatorEmbed.addField('Prefix', '`' + Prefix + '`');
-  emulatorEmbed.addField(
-    'Current mode',
-    CurrentGamemode.charAt(0) + CurrentGamemode.slice(1).toLowerCase()
+  emulatorEmbed.addFields(
+    {
+      name: 'Current mode',
+      value: CurrentGamemode.charAt(0) + CurrentGamemode.slice(1).toLowerCase(),
+    },
+    {
+      name: 'Time to choose',
+      value: DemocracyTimeout / 1000 + ' seconds',
+    },
+    { name: 'Romfile', value: '`' + Romfile + '`' },
+    { name: 'Image scale', value: 'x' + Scale },
+    {
+      name: 'Autosave interval',
+      value: `Every ${SaveStateInterval} minute(s)`,
+    }
   );
-  emulatorEmbed.addField(
-    'Time to choose',
-    DemocracyTimeout / 1000 + ' seconds'
-  );
-  emulatorEmbed.addField('Romfile', '`' + Romfile + '`');
-  emulatorEmbed.addField('Image scale', 'x' + Scale);
-  emulatorEmbed.addField(
-    'Autosave interval',
-    `Every ${SaveStateInterval} minute(s)`
-  );
-  emulatorEmbed.setFooter(
-    'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
-    'https://i.imgur.com/RPKkHMf.png'
-  );
+  emulatorEmbed.setFooter({
+    text: 'Made with ❤️ by Sebastiaan Jansen / DrSkunk',
+    iconURL: 'https://i.imgur.com/RPKkHMf.png',
+  });
 
-  client.sendMessage(emulatorEmbed);
+  await interaction.reply({ embeds: [emulatorEmbed] });
 }
 export = command;
