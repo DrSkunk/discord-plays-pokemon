@@ -9,16 +9,13 @@ import Discord, {
   ChatInputCommandInteraction,
 } from 'discord.js';
 import fs from 'fs/promises';
-import { CurrentGamemode, DemocracyTimeout } from '../Config';
-import { MAX_FAILED_ATTEMPTS } from '../Constants';
+import { CurrentGamemode } from '../Config';
 import { getDiscordInstance } from '../DiscordClient';
 import { Gamemode } from '../enums/Gamemode';
 import { ButtonReaction } from '../enums/ButtonReaction';
 import { getGameboyInstance } from '../GameboyClient';
 import { Log } from '../Log';
-import { CollectedInteractions } from '../types/CollectedInteractions';
 import { Command } from '../types/Command';
-import { ReactionsCounter } from '../types/ReactionsCounter';
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -26,10 +23,6 @@ const command: Command = {
     .setDescription('Show the latest frame and listen for buttons to press'),
   execute,
 };
-
-// Track collected button interactions
-const collectedInteractions: CollectedInteractions = {};
-const interactionTimeout: NodeJS.Timeout | null = null;
 
 async function execute(
   interaction: ChatInputCommandInteraction
@@ -44,7 +37,7 @@ async function execute(
     } else {
       await interaction.deferReply();
       await interaction.deleteReply(); // Delete the deferred reply since we'll create our own message
-      postFrame();
+      await postFrame();
     }
   }
 }
@@ -126,6 +119,9 @@ function createGameButtons(): ActionRowBuilder<ButtonBuilder>[] {
   return rows;
 }
 
+// Track the current collector to avoid creating multiple collectors
+let currentCollector: Discord.InteractionCollector<ButtonInteraction> | null = null;
+
 async function postFrame() {
   const buffer = getGameboyInstance().getFrame();
   const attachment = new AttachmentBuilder(buffer, { name: 'frame.png' });
@@ -165,6 +161,7 @@ async function postFrame() {
         components
       );
       client.currentFrameMessage = message;
+      setupButtonCollector(message);
     }
   } else {
     message = await client.sendMessageWithComponents(
@@ -173,61 +170,40 @@ async function postFrame() {
       components
     );
     client.currentFrameMessage = message;
+    setupButtonCollector(message);
   }
 
-  // Clear previous collected interactions
-  Object.keys(collectedInteractions).forEach((key) => {
-    delete collectedInteractions[key];
-  });
+  client.sendingMessage = false;
+}
 
-  client.sendingMessage = true;
-
-  // Clear any existing timeout
-  if (interactionTimeout) {
-    clearTimeout(interactionTimeout);
+function setupButtonCollector(message: Discord.Message) {
+  // Clean up existing collector if any
+  if (currentCollector) {
+    currentCollector.stop();
   }
 
-  // Set up interaction collector
-  const collector = message.createMessageComponentCollector({
+  // Set up interaction collector for instant responses
+  currentCollector = message.createMessageComponentCollector({
     componentType: ComponentType.Button,
-    time: DemocracyTimeout + Object.keys(ButtonReaction).length * 1000,
+    // Remove time limit - keep collecting indefinitely
   });
 
-  if (CurrentGamemode === Gamemode.Anarchy) {
-    collector.options.max = 1;
-  }
-
-  collector.on('collect', async (interaction: ButtonInteraction) => {
+  currentCollector.on('collect', async (interaction: ButtonInteraction) => {
     if (!interaction.customId.startsWith('pokemon_')) return;
 
     const buttonAction = interaction.customId.replace('pokemon_', '');
-    Log.info(`Collected ${buttonAction} from ${interaction.user.tag}`);
+    Log.info(`Instant button press: ${buttonAction} from ${interaction.user.tag}`);
 
-    // Acknowledge the interaction
-    await interaction.deferReply({ ephemeral: true });
-    await interaction.editReply({ content: `You pressed ${buttonAction}!` });
+    // Acknowledge the interaction silently (no visible response)
+    await interaction.deferUpdate();
 
-    if (!collectedInteractions[buttonAction]) {
-      collectedInteractions[buttonAction] = new Set();
-    }
-    collectedInteractions[buttonAction].add(interaction.user.tag);
-  });
-
-  collector.on('end', () => {
-    processInteractions();
+    // Process the button press immediately
+    await processButtonPress(buttonAction);
   });
 }
 
-function processInteractions() {
-  const client = getDiscordInstance();
-  if (!client) {
-    throw new Error('Discord client not initialised');
-  }
-
-  const actionInteractionsCounter: ReactionsCounter = {};
-  let maxActionValue = 0;
-
-  // Get top action (map button names to emoji equivalents)
+async function processButtonPress(buttonAction: string) {
+  // Map button actions to game inputs
   const buttonToEmoji: { [key: string]: string } = {
     UP: '⬆️',
     DOWN: '⬇️',
@@ -240,87 +216,26 @@ function processInteractions() {
     REFRESH: '🔄',
   };
 
-  Object.keys(collectedInteractions)
-    .filter((interaction) => Object.keys(buttonToEmoji).includes(interaction))
-    .forEach((interaction) => {
-      const { size } = collectedInteractions[interaction];
-      actionInteractionsCounter[interaction] = size;
-      if (size > maxActionValue) {
-        maxActionValue = size;
-      }
-    });
-
-  const topActions = Object.keys(actionInteractionsCounter).filter(
-    (interaction) => actionInteractionsCounter[interaction] === maxActionValue
-  );
-
-  // See if it's a repeated action
-  const repeatInteractionsCounter: ReactionsCounter = {};
-  let maxRepeatValue = 0;
-  const repeatMap: { [key: string]: number } = {
-    '2x': 2,
-    '3x': 3,
-    '4x': 4,
-    '5x': 5,
-  };
-
-  Object.keys(collectedInteractions)
-    .filter((interaction) => Object.keys(repeatMap).includes(interaction))
-    .forEach((interaction) => {
-      const { size } = collectedInteractions[interaction];
-      repeatInteractionsCounter[interaction] = size;
-      if (size > maxRepeatValue) {
-        maxRepeatValue = size;
-      }
-    });
-
-  const topRepeats = Object.keys(repeatInteractionsCounter).filter(
-    (interaction) => repeatInteractionsCounter[interaction] === maxRepeatValue
-  );
-
-  if (topActions.length === 0 || maxActionValue === 0) {
-    client.sendMessage(`No choice was made.`);
-    client.failedAttempts++;
+  if (buttonAction === 'REFRESH') {
+    // Just show new frame, don't press any game button
+    Log.info('Refreshing frame');
+  } else if (buttonAction.endsWith('x')) {
+    // Handle repeat buttons (2x, 3x, etc.) - for democracy mode
+    const repeatCount = parseInt(buttonAction.replace('x', ''));
+    Log.info(`Repeat button pressed: ${repeatCount}x - but ignoring in instant mode`);
+    // In instant mode, we ignore repeat buttons
+    return;
   } else {
-    client.failedAttempts = 0;
-    const action = topActions[Math.floor(Math.random() * topActions.length)];
-
-    if (action === 'REFRESH') {
-      client.sendMessage('Giving new frame');
-    } else {
-      let repeat = 1;
-      if (topRepeats.length !== 0) {
-        const repeatAction =
-          topRepeats[Math.floor(Math.random() * topRepeats.length)];
-        repeat = repeatMap[repeatAction];
-      }
-
-      // Map button action to ButtonReaction enum value
-      const actionKey =
-        ButtonReaction[buttonToEmoji[action] as keyof typeof ButtonReaction];
-
-      getGameboyInstance().pressKey(actionKey, repeat);
-      client.sendMessage(`Pressed ${action} ${repeat} time(s)`);
+    // Press the game button
+    const actionKey = ButtonReaction[buttonToEmoji[buttonAction] as keyof typeof ButtonReaction];
+    if (actionKey) {
+      getGameboyInstance().pressKey(actionKey, 1);
+      Log.info(`Pressed game button: ${buttonAction}`);
     }
   }
 
-  client.sendingMessage = false;
-  // Wait a bit so the keys are registered
-  setTimeout(postNewFrame, 5000);
-}
-
-function postNewFrame() {
-  const client = getDiscordInstance();
-  if (!client) {
-    throw new Error('Discord client not initialised');
-  }
-  if (client.failedAttempts >= MAX_FAILED_ATTEMPTS) {
-    client.failedAttempts = 0;
-    client.sendMessage(`No choice was made after ${MAX_FAILED_ATTEMPTS} attempts, stopping automatic frame posting.
-Use command \`/frame\` to start again.`);
-  } else {
-    postFrame();
-  }
+  // Immediately update with new frame (this will update the existing message)
+  await postFrame();
 }
 
 export = command;
