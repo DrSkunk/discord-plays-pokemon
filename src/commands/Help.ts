@@ -1,20 +1,26 @@
-import { EmbedBuilder } from 'discord.js';
-import { Prefix } from '../Config';
+import {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  names: ['help', 'h'],
-  description: 'Display this help information',
+  data: new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('Display help information about Discord Plays Pokemon'),
   execute,
-  adminOnly: false,
 };
 
-function execute(): void {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
   }
+
   const embed = new EmbedBuilder();
 
   embed.setTitle('Discord plays pokemon');
@@ -24,19 +30,11 @@ function execute(): void {
   embed.setURL('https://github.com/DrSkunk/discord-plays-pokemon');
 
   client.commands.forEach((command) => {
-    let description = command.description;
-    if (command.names.length > 1) {
-      description += '\n Aliases: ';
-      description += command.names
-        .slice(1)
-        .map((name) => `**${Prefix}${name}**`)
-        .join(', ');
-    }
-    if (command.adminOnly) {
-      description += '\n **Admin only**';
-    }
+    const data = command.data;
+    const description = data.description;
+
     embed.addFields({
-      name: Prefix + command.names[0],
+      name: `/${data.name}`,
       value: description,
     });
   });
@@ -46,6 +44,7 @@ function execute(): void {
     iconURL: 'https://i.imgur.com/RPKkHMf.png',
   });
 
-  client.sendMessage(embed);
+  await interaction.reply({ embeds: [embed] });
 }
+
 export = command;

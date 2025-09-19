@@ -1,24 +1,38 @@
-import { Message, EmbedBuilder } from 'discord.js';
-import { Prefix } from '../Config';
+import {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import { getDiscordInstance } from '../DiscordClient';
 import { getGameboyInstance } from '../GameboyClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  names: ['info', 'i'],
-  description: 'Show info about the player and the pokemon in the party.',
+  data: new SlashCommandBuilder()
+    .setName('info')
+    .setDescription('Show info about the player and the pokemon in the party')
+    .addIntegerOption((option) =>
+      option
+        .setName('pokemon')
+        .setDescription('Pokemon number (1-6) for detailed info')
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(6)
+    ),
   execute,
-  adminOnly: false,
 };
 
-function execute(_msg: Message, args: string[]): void {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
   }
   const stats = getGameboyInstance().getStats();
+  const pokemonNumber = interaction.options.getInteger('pokemon');
 
-  if (args.length === 0) {
+  if (pokemonNumber === null) {
     const shortEmbed = new EmbedBuilder();
     shortEmbed.setAuthor({ name: stats.playerName });
     shortEmbed.addFields(
@@ -27,7 +41,7 @@ function execute(_msg: Message, args: string[]): void {
       { name: 'Time', value: stats.time, inline: true },
       {
         name: 'Location',
-        value: `${stats.location.name}\nRun \`${Prefix}map\` for full map`,
+        value: `${stats.location.name}\nRun \`/map\` for full map`,
         inline: true,
       }
     );
@@ -41,18 +55,18 @@ function execute(_msg: Message, args: string[]): void {
     });
     shortEmbed.addFields({
       name: 'Detailed info',
-      value: `Run \`${Prefix}info 1\` to view info about the first pokémon, \`${Prefix}info 2\` for the second and so on.`,
+      value: `Run \`/info pokemon:1\` to view info about the first pokémon, \`/info pokemon:2\` for the second and so on.`,
     });
     const badges = stats.gyms
       .map(({ name, done }) => `${name}: ${done ? 'Done' : 'Not done'}`)
       .join(', ');
     shortEmbed.addFields({ name: 'Badges', value: badges });
 
-    client.sendMessage(shortEmbed);
+    await interaction.reply({ embeds: [shortEmbed] });
   } else {
     try {
-      const pokemonIndex = parseInt(args[0]) - 1;
-      if (pokemonIndex > stats.pokemon.length) {
+      const pokemonIndex = pokemonNumber - 1;
+      if (pokemonIndex >= stats.pokemon.length) {
         throw new Error('Invalid pokemon index');
       }
 
@@ -84,11 +98,12 @@ function execute(_msg: Message, args: string[]): void {
         { name: 'Special', value: pokemon.special.toString(), inline: true }
       );
 
-      client.sendMessage(pokemonEmbed);
+      await interaction.reply({ embeds: [pokemonEmbed] });
     } catch (error) {
-      client.sendMessage(
-        `Invalid pokémon index given. Run \`${Prefix}info 1\` to view info about the first pokémon, \`${Prefix}info 2\` for the second and so on.`
-      );
+      await interaction.reply({
+        content: `Invalid pokémon index given. Run \`/info pokemon:1\` to view info about the first pokémon, \`/info pokemon:2\` for the second and so on.`,
+        ephemeral: true,
+      });
     }
   }
 }

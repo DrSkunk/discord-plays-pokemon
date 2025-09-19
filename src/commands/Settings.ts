@@ -1,8 +1,11 @@
-import { EmbedBuilder } from 'discord.js';
+import {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import {
   CurrentGamemode,
   DemocracyTimeout,
-  Prefix,
   Romfile,
   SaveStateInterval,
   Scale,
@@ -11,13 +14,15 @@ import { getDiscordInstance } from '../DiscordClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  names: ['settings'],
-  description: 'Show the current loaded settings.',
+  data: new SlashCommandBuilder()
+    .setName('settings')
+    .setDescription('Show the current loaded settings'),
   execute,
-  adminOnly: false,
 };
 
-function execute(): void {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
@@ -25,7 +30,6 @@ function execute(): void {
   const emulatorEmbed = new EmbedBuilder();
 
   emulatorEmbed.addFields(
-    { name: 'Prefix', value: '`' + Prefix + '`' },
     {
       name: 'Current mode',
       value: CurrentGamemode.charAt(0) + CurrentGamemode.slice(1).toLowerCase(),
@@ -46,6 +50,6 @@ function execute(): void {
     iconURL: 'https://i.imgur.com/RPKkHMf.png',
   });
 
-  client.sendMessage(emulatorEmbed);
+  await interaction.reply({ embeds: [emulatorEmbed] });
 }
 export = command;

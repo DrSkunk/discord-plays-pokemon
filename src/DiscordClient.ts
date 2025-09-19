@@ -5,10 +5,12 @@ import Discord, {
   GatewayIntentBits,
   ActivityType,
   Interaction,
+  REST,
+  Routes,
 } from 'discord.js';
 import glob from 'glob';
 import { promisify } from 'util';
-import { DiscordChannelId, Prefix } from './Config';
+import { DiscordChannelId, DiscordToken, DiscordGuildId } from './Config';
 import { Log } from './Log';
 import { Command } from './types/Command';
 
@@ -33,11 +35,7 @@ class DiscordClient {
   constructor(token: string) {
     this._token = token;
     this._client = new Discord.Client({
-      intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-      ],
+      intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
     });
     this._channel = this._client.channels.cache.get(
       DiscordChannelId
@@ -55,60 +53,81 @@ class DiscordClient {
         DiscordChannelId
       ) as TextChannel;
       if (this._client.user) {
-        this._client.user.setActivity(`${Prefix}help`, {
-          type: ActivityType.Listening,
+        this._client.user.setActivity('Discord Plays Pokemon', {
+          type: ActivityType.Playing,
         });
-        Log.info(`Activity set to ${Prefix}help`);
+        Log.info('Activity set to Discord Plays Pokemon');
       }
+
+      // Load commands
       const commandFiles = await globPromise(`${__dirname}/commands/*.{js,ts}`);
+      const commands = [];
 
       for (const file of commandFiles) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const command = require(file) as Command;
-        Log.info('Added command', command.names[0]);
+        Log.info('Added command', command.data.name);
         this._commands.push(command);
+        commands.push(command.data.toJSON());
+      }
+
+      // Register slash commands
+      const rest = new REST({ version: '10' }).setToken(DiscordToken);
+      try {
+        Log.info('Started refreshing application (/) commands.');
+        if (this._client.user) {
+          await rest.put(
+            Routes.applicationGuildCommands(
+              this._client.user.id,
+              DiscordGuildId
+            ),
+            { body: commands }
+          );
+        }
+        Log.info('Successfully reloaded application (/) commands.');
+      } catch (error) {
+        Log.error('Error registering slash commands:', error);
       }
     });
 
     this._client.on('interactionCreate', async (interaction: Interaction) => {
-      if (!interaction.isButton()) return;
-
       // Handle button interactions from the frame command
-      if (interaction.customId.startsWith('pokemon_')) {
+      if (
+        interaction.isButton() &&
+        interaction.customId.startsWith('pokemon_')
+      ) {
         // This will be handled by the Frame command's interaction handler
         return;
       }
-    });
 
-    this._client.on('message', async (message) => {
-      if (
-        !message.guild ||
-        message.author.bot ||
-        message.channel.id !== DiscordChannelId ||
-        !message.content.startsWith(Prefix)
-      ) {
+      // Handle slash commands
+      if (!interaction.isChatInputCommand()) return;
+
+      const command = this._commands.find(
+        (c) => c.data.name === interaction.commandName
+      );
+      if (!command) {
+        Log.error(`No command matching ${interaction.commandName} was found.`);
         return;
       }
 
-      const [commandName, ...args] = message.content
-        .slice(Prefix.length)
-        .split(/ +/);
+      try {
+        await command.execute(interaction);
+      } catch (error) {
+        Log.error('Error executing command:', error);
+        const errorMessage = {
+          content: 'There was an error while executing this command!',
+          ephemeral: true,
+        };
 
-      const command = this._commands.find((c) => c.names.includes(commandName));
-
-      if (command) {
-        const isAdmin = message.member?.hasPermission('ADMINISTRATOR');
-        if (command.adminOnly && !isAdmin) {
-          this.sendMessage('This command is for admins only');
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp(errorMessage);
         } else {
-          command.execute(message, args);
+          await interaction.reply(errorMessage);
         }
-      } else {
-        this.sendMessage(
-          `Unrecognized command. Type \`${Prefix}help\` for the list of commands.`
-        );
       }
     });
+
     this._client.login(this._token);
   }
 

@@ -1,28 +1,43 @@
-import { Message } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { getDiscordInstance } from '../DiscordClient';
 import { getGameboyInstance } from '../GameboyClient';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  names: ['save', 's'],
-  description:
-    'Save the current state to a new file. Optionally supply a filename, otherwise the timestamp will be used',
+  data: new SlashCommandBuilder()
+    .setName('save')
+    .setDescription('Save the current state to a new file')
+    .addStringOption((option) =>
+      option
+        .setName('filename')
+        .setDescription(
+          'Optional filename (timestamp will be used if not provided)'
+        )
+        .setRequired(false)
+    )
+    .setDefaultMemberPermissions(0), // Require admin permissions
   execute,
-  adminOnly: true,
 };
 
-async function execute(_msg: Message, args: string[]): Promise<void> {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
   }
+
+  const filename = interaction.options.getString('filename');
   let savedFileLocation: string;
-  if (args.length === 0) {
+
+  if (filename === null) {
     savedFileLocation = await getGameboyInstance().newSaveState();
   } else {
-    const filename = args.join('_');
     savedFileLocation = await getGameboyInstance().newSaveState(filename);
   }
-  client.sendMessage(`Saved to \`${savedFileLocation}\``);
+
+  await interaction.reply({
+    content: `Saved to \`${savedFileLocation}\``,
+  });
 }
 export = command;

@@ -5,9 +5,11 @@ import Discord, {
   ActionRowBuilder,
   ComponentType,
   ButtonInteraction,
+  SlashCommandBuilder,
+  ChatInputCommandInteraction,
 } from 'discord.js';
 import fs from 'fs/promises';
-import { CurrentGamemode, DemocracyTimeout, Prefix } from '../Config';
+import { CurrentGamemode, DemocracyTimeout } from '../Config';
 import { MAX_FAILED_ATTEMPTS } from '../Constants';
 import { getDiscordInstance } from '../DiscordClient';
 import { Gamemode } from '../enums/Gamemode';
@@ -19,22 +21,29 @@ import { Command } from '../types/Command';
 import { ReactionsCounter } from '../types/ReactionsCounter';
 
 const command: Command = {
-  names: ['frame', 'f'],
-  description: 'Show the latest frame and listen for buttons to press.',
+  data: new SlashCommandBuilder()
+    .setName('frame')
+    .setDescription('Show the latest frame and listen for buttons to press'),
   execute,
-  adminOnly: false,
 };
 
 // Track collected button interactions
 const collectedInteractions: CollectedInteractions = {};
 const interactionTimeout: NodeJS.Timeout | null = null;
 
-function execute(): void {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (client) {
     if (client.sendingMessage) {
-      client.sendMessage('Please use the previous message.');
+      await interaction.reply({
+        content: 'Please use the previous message.',
+        ephemeral: true,
+      });
     } else {
+      await interaction.deferReply();
+      await interaction.deleteReply(); // Delete the deferred reply since we'll create our own message
       postFrame();
     }
   }
@@ -308,7 +317,7 @@ function postNewFrame() {
   if (client.failedAttempts >= MAX_FAILED_ATTEMPTS) {
     client.failedAttempts = 0;
     client.sendMessage(`No choice was made after ${MAX_FAILED_ATTEMPTS} attempts, stopping automatic frame posting.
-Use command \`${Prefix}frame\` to start again.`);
+Use command \`/frame\` to start again.`);
   } else {
     postFrame();
   }

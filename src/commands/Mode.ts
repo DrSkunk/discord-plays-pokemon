@@ -1,33 +1,57 @@
-import { Message } from 'discord.js';
-import { Prefix, setGameMode } from '../Config';
+import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { setGameMode } from '../Config';
 import { getDiscordInstance } from '../DiscordClient';
 import { Gamemode } from '../enums/Gamemode';
 import { Command } from '../types/Command';
 
 const command: Command = {
-  names: ['mode', 'm'],
-  description:
-    'Change the mode to **Anarchy** or **Democracy** mode. with _Anarchy mode_ the first action is executed, with _Democracy mode_ the action with the most votes is executed',
+  data: new SlashCommandBuilder()
+    .setName('mode')
+    .setDescription('Change the mode to Anarchy or Democracy mode')
+    .addStringOption((option) =>
+      option
+        .setName('gamemode')
+        .setDescription('The game mode to set')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Anarchy (first action executed)', value: 'ANARCHY' },
+          { name: 'Democracy (most votes executed)', value: 'DEMOCRACY' }
+        )
+    )
+    .setDefaultMemberPermissions(0), // Require admin permissions
   execute,
-  adminOnly: true,
 };
 
-function execute(_msg: Message, args: string[]): void {
+async function execute(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
   const client = getDiscordInstance();
   if (!client) {
     throw new Error('Discord did not initialize');
   }
-  const newMode = args[0]?.toUpperCase();
-  if (args.length === 0) {
-    client.sendMessage('No mode given');
-  } else if (newMode !== Gamemode.Anarchy && newMode !== Gamemode.Democracy) {
-    client.sendMessage(
-      `Supply either _Anarchy_ or _Democracy_ as parameter, case insensitive.
-E.g.: \`${Prefix}mode democracy\``
-    );
-  } else {
-    setGameMode(newMode);
-    client.sendMessage('Mode set to `' + newMode + '`');
+
+  const newMode = interaction.options.getString('gamemode');
+  if (!newMode) {
+    await interaction.reply({
+      content: 'No game mode specified.',
+      ephemeral: true,
+    });
+    return;
   }
+
+  const mode = newMode.toUpperCase();
+
+  if (mode !== Gamemode.Anarchy && mode !== Gamemode.Democracy) {
+    await interaction.reply({
+      content: 'Invalid game mode. Please select either Anarchy or Democracy.',
+      ephemeral: true,
+    });
+    return;
+  }
+
+  setGameMode(mode as Gamemode);
+  await interaction.reply({
+    content: `Mode set to \`${mode}\``,
+  });
 }
 export = command;

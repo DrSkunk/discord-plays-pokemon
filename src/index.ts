@@ -3,7 +3,6 @@ dotenv.config();
 import fs from 'fs';
 import cron from 'node-cron';
 import {
-  Prefix,
   DiscordToken,
   DiscordGuildId,
   DiscordChannelId,
@@ -23,7 +22,6 @@ import { SocketServer } from './SocketServer';
 Log.info('Starting Discord Plays Pokémon');
 
 if (
-  !Prefix ||
   !DiscordToken ||
   !DiscordGuildId ||
   !DiscordChannelId ||
